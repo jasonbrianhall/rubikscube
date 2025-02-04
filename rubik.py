@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QOpenGLWidget
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from OpenGL.GL import *
 from OpenGL.GLU import *
 import numpy as np
@@ -21,6 +21,10 @@ class GLWidget(QOpenGLWidget):
         elif event.key() == Qt.Key_Down:
             self.cube.rotation[0] += 90
         self.update()
+
+    def mousePressEvent(self, event):
+        x, y = event.x(), event.y()
+        print(f"Mouse clicked at window coordinates: ({x}, {y})")
 
     def initializeGL(self):
         glEnable(GL_DEPTH_TEST)
