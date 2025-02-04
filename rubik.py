@@ -5,6 +5,8 @@ from PyQt5.QtCore import Qt
 from OpenGL.GL import *
 from OpenGL.GLU import *
 import numpy as np
+from PyQt5.QtCore import QTimer
+
 
 class CubeColor(Enum):
     RED = (1.0, 0.0, 0.0)
@@ -21,16 +23,32 @@ class GLWidget(QOpenGLWidget):
         super(GLWidget, self).__init__(parent)
         self.cube = RubiksCube()
         self.setFocusPolicy(Qt.StrongFocus)
+        
+        # Setup animation timer
+        self.animation_timer = QTimer()
+        self.animation_timer.timeout.connect(self.update_animation)
+        self.animation_timer.setInterval(16)  # ~60 FPS
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Left:
-            self.cube.rotation[1] -= 90
-        elif event.key() == Qt.Key_Right:
-            self.cube.rotation[1] += 90
-        elif event.key() == Qt.Key_Up:
-            self.cube.rotation[0] -= 90
-        elif event.key() == Qt.Key_Down:
-            self.cube.rotation[0] += 90
+        if not self.cube.is_animating:  # Only start new rotation if not already animating
+            if event.key() == Qt.Key_Left:
+                self.start_rotation(1, -90)
+            elif event.key() == Qt.Key_Right:
+                self.start_rotation(1, 90)
+            elif event.key() == Qt.Key_Up:
+                self.start_rotation(0, -90)
+            elif event.key() == Qt.Key_Down:
+                self.start_rotation(0, 90)
+
+    def start_rotation(self, axis, angle):
+        """Start a rotation animation"""
+        if self.cube.animate_rotation(axis, angle):
+            self.animation_timer.start()
+
+    def update_animation(self):
+        """Update the animation state"""
+        if not self.cube.update_animation():
+            self.animation_timer.stop()
         self.update()
 
     def mousePressEvent(self, event):
@@ -61,6 +79,8 @@ class RubiksCube:
         self.selected_color = CubeColor.RED
         self.cubelets = {}
         self.face_coords = {}
+        self.target_rotation = [30, 45, 0]  # Target angles for animation
+        self.is_animating = False
         self._initialize_cubes()
 
     def _initialize_cubes(self):
@@ -101,6 +121,29 @@ class RubiksCube:
                     
                     self.cubelets[key]['colors'] = colors
 
+    def animate_rotation(self, axis, angle):
+        """Start a rotation animation"""
+        self.target_rotation[axis] = self.rotation[axis] + angle
+        self.is_animating = True
+        return self.is_animating
+
+    def update_animation(self):
+        """Update the rotation animation"""
+        STEP_SIZE = 3  # Degrees per step
+        still_animating = False
+
+        for i in range(2):  # Only animate X and Y rotation (indices 0 and 1)
+            if self.rotation[i] != self.target_rotation[i]:
+                diff = self.target_rotation[i] - self.rotation[i]
+                if abs(diff) <= STEP_SIZE:
+                    self.rotation[i] = self.target_rotation[i]
+                else:
+                    self.rotation[i] += STEP_SIZE if diff > 0 else -STEP_SIZE
+                    still_animating = True
+
+        self.is_animating = still_animating
+        return still_animating
+        
     def _draw_cubelet_face(self, x, y, z, face_type, color):
         """Draw a single face of a cubelet"""
         vertices = [
@@ -386,15 +429,15 @@ class RubiksWindow(QMainWindow):
         self.gl_widget.cube.set_selected_color(color)
 
     def rotate(self, direction):
-        if direction == 'up':
-            self.gl_widget.cube.rotation[0] -= 90
-        elif direction == 'down':
-            self.gl_widget.cube.rotation[0] += 90
-        elif direction == 'left':
-            self.gl_widget.cube.rotation[1] -= 90
-        elif direction == 'right':
-            self.gl_widget.cube.rotation[1] += 90
-        self.gl_widget.update()
+        if not self.gl_widget.cube.is_animating:  # Only start new rotation if not already animating
+            if direction == 'up':
+                self.gl_widget.start_rotation(0, -90)
+            elif direction == 'down':
+                self.gl_widget.start_rotation(0, 90)
+            elif direction == 'left':
+                self.gl_widget.start_rotation(1, -90)
+            elif direction == 'right':
+                self.gl_widget.start_rotation(1, 90)
 
 def main():
     app = QApplication(sys.argv)
