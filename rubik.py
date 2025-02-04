@@ -60,26 +60,26 @@ class RubiksCube:
             glPushMatrix()
             glTranslatef(x, y, z)
             self.draw_cube()
-            glPopMatrix()
-    
+            glPopMatrix()    
+
     def draw_cube(self):
         vertices = [
             [0.4, 0.4, 0.4], [-0.4, 0.4, 0.4], [-0.4, -0.4, 0.4], [0.4, -0.4, 0.4],
             [0.4, 0.4, -0.4], [-0.4, 0.4, -0.4], [-0.4, -0.4, -0.4], [0.4, -0.4, -0.4]
         ]
-        
+    
         faces = [
             [0, 1, 2, 3], [5, 4, 7, 6], [4, 0, 3, 7],
             [1, 5, 6, 2], [4, 5, 1, 0], [3, 2, 6, 7]
         ]
-        
+    
         glBegin(GL_QUADS)
         glColor3f(1, 1, 1)
         for face in faces:
             for vertex in face:
                 glVertex3fv(vertices[vertex])
         glEnd()
-        
+    
         glColor3f(0, 0, 0)
         glLineWidth(2.0)
         glBegin(GL_LINES)
@@ -92,29 +92,27 @@ class RubiksCube:
             for vertex in edge:
                 glVertex3fv(vertices[vertex])
         glEnd()
-        
-        # Print the pixel coordinates of each side
-        modelview = glGetDoublev(GL_MODELVIEW_MATRIX)
-        projection = glGetDoublev(GL_PROJECTION_MATRIX)
-        viewport = glGetIntegerv(GL_VIEWPORT)
-    
 
-        # Print the pixel coordinates of each side rounded to the nearest pixel
+        # Print the pixel coordinates of each side rounded to the nearest pixel and relative to the window location
         modelview = glGetDoublev(GL_MODELVIEW_MATRIX)
         projection = glGetDoublev(GL_PROJECTION_MATRIX)
         viewport = glGetIntegerv(GL_VIEWPORT)
     
-        print("Pixel coordinates of each side (rounded):")
-        facenum=0
+        window_x_start = viewport[0]
+        window_y_start = viewport[1]
+    
+        print("Pixel coordinates of each side (rounded and relative to window location):")
         for face in faces:
             coords = []
             for v in face:
                 x, y, z = vertices[v]
-                winX, winY, winZ = gluProject(x, y, z, modelview, projection, viewport)
-                coords.append((round(winX), round(viewport[3] - winY), round(winZ)))
-            print(facenum, coords)
-            facenum+=1
+                winX, winY, winZ = gluProject(x, y, z, modelview, projection, viewport)    
+                relative_x = round(winX) - window_x_start    
+                relative_y = round(viewport[3] - winY) - window_y_start
+                coords.append((int(relative_x), int(relative_y), int(round(winZ))))
+            print(coords)
 
+            
 class RubiksWindow(QMainWindow):
     def __init__(self):
         super().__init__()
