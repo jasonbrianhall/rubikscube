@@ -174,11 +174,14 @@ class RubiksCube:
                         clicked_face_type = face_type
         
         if clicked_cubelet and clicked_face_type:
-            print(f"Clicked cubelet at position {clicked_cubelet}, face {clicked_face_type}")
-            self.cubelets[clicked_cubelet]['colors'][clicked_face_type] = self.selected_color
-            return True
+            # Don't change the color if it's an interior face
+            current_color = self.cubelets[clicked_cubelet]['colors'][clicked_face_type]
+            if current_color != CubeColor.INTERIOR:
+                print(f"Clicked cubelet at position {clicked_cubelet}, face {clicked_face_type}")
+                self.cubelets[clicked_cubelet]['colors'][clicked_face_type] = self.selected_color
+                return True
         return False
-
+        
     def _point_in_polygon(self, x, y, vertices):
         """Ray casting algorithm to determine if point is inside polygon"""
         n = len(vertices)
