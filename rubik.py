@@ -30,7 +30,7 @@ class GLWidget(QOpenGLWidget):
         glViewport(0, 0, w, h)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPerspective(90, w/h, 0.1, 50.0)
+        gluPerspective(45, w/h, 0.1, 50.0)
         glTranslatef(0.0, 0.0, -15)
 
     def paintGL(self):
@@ -41,7 +41,7 @@ class GLWidget(QOpenGLWidget):
 
 class RubiksCube:
     def __init__(self):
-        self.rotation = [30, 90, 0]
+        self.rotation = [30, 45, 0]
         self.cubes = []
         self._initialize_cubes()
 
