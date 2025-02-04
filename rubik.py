@@ -13,13 +13,13 @@ class GLWidget(QOpenGLWidget):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Left:
-            self.cube.rotation[1] -= 45
+            self.cube.rotation[1] -= 90
         elif event.key() == Qt.Key_Right:
-            self.cube.rotation[1] += 45
+            self.cube.rotation[1] += 90
         elif event.key() == Qt.Key_Up:
-            self.cube.rotation[0] -= 45
+            self.cube.rotation[0] -= 90
         elif event.key() == Qt.Key_Down:
-            self.cube.rotation[0] += 45
+            self.cube.rotation[0] += 90
         self.update()
 
     def initializeGL(self):
@@ -30,7 +30,7 @@ class GLWidget(QOpenGLWidget):
         glViewport(0, 0, w, h)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPerspective(45, w/h, 0.1, 50.0)
+        gluPerspective(90, w/h, 0.1, 50.0)
         glTranslatef(0.0, 0.0, -15)
 
     def paintGL(self):
@@ -41,7 +41,7 @@ class GLWidget(QOpenGLWidget):
 
 class RubiksCube:
     def __init__(self):
-        self.rotation = [30, 45, 0]
+        self.rotation = [30, 90, 0]
         self.cubes = []
         self._initialize_cubes()
 
@@ -150,13 +150,13 @@ class RubiksWindow(QMainWindow):
 
     def rotate(self, direction):
         if direction == 'up':
-            self.gl_widget.cube.rotation[0] -= 45
+            self.gl_widget.cube.rotation[0] -= 90
         elif direction == 'down':
-            self.gl_widget.cube.rotation[0] += 45
+            self.gl_widget.cube.rotation[0] += 90
         elif direction == 'left':
-            self.gl_widget.cube.rotation[1] -= 45
+            self.gl_widget.cube.rotation[1] -= 90
         elif direction == 'right':
-            self.gl_widget.cube.rotation[1] += 45
+            self.gl_widget.cube.rotation[1] += 90
         self.gl_widget.update()
 
 def main():
