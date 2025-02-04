@@ -14,6 +14,7 @@ class CubeColor(Enum):
     ORANGE = (1.0, 0.5, 0.0)
     WHITE = (1.0, 1.0, 1.0)
     UNASSIGNED = (0.8, 0.8, 0.8)
+    INTERIOR = (0, 0, 0)  # New dark gray color for interior faces
 
 class GLWidget(QOpenGLWidget):
     def __init__(self, parent=None):
@@ -63,36 +64,96 @@ class RubiksCube:
         self._initialize_cubes()
 
     def _initialize_cubes(self):
-        """Initialize the 27 cubelets positions"""
+        """Initialize the 27 cubelets positions with interior faces"""
         for x in [-1, 0, 1]:
             for y in [-1, 0, 1]:
                 for z in [-1, 0, 1]:
-                    # Only add faces for outer cubelets
                     faces = []
-                    # Front/Back faces (z)
-                    if z == 1:  # Front
-                        faces.append(('front', [x, y, z]))
-                    elif z == -1:  # Back
-                        faces.append(('back', [x, y, z]))
-                    # Left/Right faces (x)
-                    if x == -1:  # Left
-                        faces.append(('left', [x, y, z]))
-                    elif x == 1:  # Right
-                        faces.append(('right', [x, y, z]))
-                    # Top/Bottom faces (y)
-                    if y == 1:  # Top
-                        faces.append(('top', [x, y, z]))
-                    elif y == -1:  # Bottom
-                        faces.append(('bottom', [x, y, z]))
-                        
-                    if faces:  # Only add cubelets with visible faces
-                        key = (x, y, z)
-                        self.cubelets[key] = {
-                            'pos': [x, y, z],
-                            'faces': faces,
-                            'colors': {face[0]: CubeColor.UNASSIGNED for face in faces}
-                        }
+                    # Add all six faces for every cubelet
+                    faces.extend([
+                        ('front', [x, y, z]),
+                        ('back', [x, y, z]),
+                        ('left', [x, y, z]),
+                        ('right', [x, y, z]),
+                        ('top', [x, y, z]),
+                        ('bottom', [x, y, z])
+                    ])
+                    
+                    key = (x, y, z)
+                    self.cubelets[key] = {
+                        'pos': [x, y, z],
+                        'faces': faces,
+                        'colors': {}
+                    }
+                    
+                    # Set colors based on position
+                    colors = {}
+                    for face_type, _ in faces:
+                        if (face_type == 'front' and z == 1) or \
+                           (face_type == 'back' and z == -1) or \
+                           (face_type == 'left' and x == -1) or \
+                           (face_type == 'right' and x == 1) or \
+                           (face_type == 'top' and y == 1) or \
+                           (face_type == 'bottom' and y == -1):
+                            colors[face_type] = CubeColor.UNASSIGNED
+                        else:
+                            colors[face_type] = CubeColor.INTERIOR
+                    
+                    self.cubelets[key]['colors'] = colors
 
+    def _draw_cubelet_face(self, x, y, z, face_type, color):
+        """Draw a single face of a cubelet"""
+        vertices = [
+            [-0.4, 0.4, 0.4], [-0.4, -0.4, 0.4], [0.4, -0.4, 0.4], [0.4, 0.4, 0.4]
+        ]
+        
+        # Transform vertices based on face type
+        if face_type == 'back':
+            vertices = [[-v[0], v[1], -v[2]] for v in vertices]
+        elif face_type == 'left':
+            vertices = [[-v[2], v[1], v[0]] for v in vertices]
+        elif face_type == 'right':
+            vertices = [[v[2], v[1], -v[0]] for v in vertices]
+        elif face_type == 'top':
+            vertices = [[v[0], v[2], -v[1]] for v in vertices]
+        elif face_type == 'bottom':
+            vertices = [[v[0], -v[2], v[1]] for v in vertices]
+        
+        # Get screen coordinates for click detection
+        if color != CubeColor.INTERIOR:  # Only track clickable faces
+            modelview = glGetDoublev(GL_MODELVIEW_MATRIX)
+            projection = glGetDoublev(GL_PROJECTION_MATRIX)
+            viewport = glGetIntegerv(GL_VIEWPORT)
+            
+            screen_coords = []
+            for v in vertices:
+                winX, winY, winZ = gluProject(v[0], v[1], v[2], modelview, projection, viewport)
+                screen_x = int(round(winX) - viewport[0])
+                screen_y = int(viewport[3] - round(winY) - viewport[1])
+                screen_coords.append((screen_x, screen_y, winZ))
+            
+            # Store these coordinates for click detection
+            key = (x, y, z)
+            if key not in self.face_coords:
+                self.face_coords[key] = {}
+            self.face_coords[key][face_type] = screen_coords
+        
+        # Draw the colored face
+        glBegin(GL_QUADS)
+        glColor3f(*color.value)
+        for v in vertices:
+            glVertex3fv(v)
+        glEnd()
+        
+        # Draw black edges only for exterior faces
+        if color != CubeColor.INTERIOR:
+            glColor3f(0, 0, 0)
+            glLineWidth(2.0)
+            glBegin(GL_LINE_LOOP)
+            for v in vertices:
+                glVertex3fv(v)
+            glEnd()
+            
     def set_selected_color(self, color: CubeColor):
         self.selected_color = color
 
