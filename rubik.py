@@ -92,6 +92,28 @@ class RubiksCube:
             for vertex in edge:
                 glVertex3fv(vertices[vertex])
         glEnd()
+        
+        # Print the pixel coordinates of each side
+        modelview = glGetDoublev(GL_MODELVIEW_MATRIX)
+        projection = glGetDoublev(GL_PROJECTION_MATRIX)
+        viewport = glGetIntegerv(GL_VIEWPORT)
+    
+
+        # Print the pixel coordinates of each side rounded to the nearest pixel
+        modelview = glGetDoublev(GL_MODELVIEW_MATRIX)
+        projection = glGetDoublev(GL_PROJECTION_MATRIX)
+        viewport = glGetIntegerv(GL_VIEWPORT)
+    
+        print("Pixel coordinates of each side (rounded):")
+        facenum=0
+        for face in faces:
+            coords = []
+            for v in face:
+                x, y, z = vertices[v]
+                winX, winY, winZ = gluProject(x, y, z, modelview, projection, viewport)
+                coords.append((round(winX), round(viewport[3] - winY), round(winZ)))
+            print(facenum, coords)
+            facenum+=1
 
 class RubiksWindow(QMainWindow):
     def __init__(self):
