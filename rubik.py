@@ -1,6 +1,6 @@
 import sys
 from enum import Enum
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QOpenGLWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QOpenGLWidget, QMenuBar, QMenu, QAction
 from PyQt5.QtCore import Qt
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -237,64 +237,87 @@ class RubiksWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Rubiks Cube State Input')
-        self.setGeometry(100, 100, 1200, 800)
+        self.setGeometry(100, 100, 800, 600)
         
+        # Create menu bar
+        menubar = self.menuBar()
+        file_menu = menubar.addMenu('File')
+        
+        # Add menu actions
+        save_action = QAction('Save', self)
+        save_action.triggered.connect(self.save_state)
+        file_menu.addAction(save_action)
+        
+        clear_action = QAction('Clear', self)
+        clear_action.triggered.connect(self.clear_cube)
+        file_menu.addAction(clear_action)
+        
+        file_menu.addSeparator()
+        
+        quit_action = QAction('Quit', self)
+        quit_action.triggered.connect(QApplication.quit)
+        file_menu.addAction(quit_action)
+        
+        # Main widget and layout
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
-        layout = QHBoxLayout(main_widget)
+        layout = QVBoxLayout(main_widget)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         
-        self.gl_widget = GLWidget()
-        layout.addWidget(self.gl_widget)
-        
+        # Create top control bar
         controls = QWidget()
-        controls_layout = QVBoxLayout(controls)
+        controls.setMaximumHeight(40)
+        controls_layout = QHBoxLayout(controls)
+        controls_layout.setSpacing(2)
+        controls_layout.setContentsMargins(5, 0, 5, 0)
         
         # Navigation buttons
-        nav_layout = QHBoxLayout()
-        self.up_btn = QPushButton('↑')
-        self.down_btn = QPushButton('↓')
-        self.left_btn = QPushButton('←')
-        self.right_btn = QPushButton('→')
+        nav_buttons = {'←': 'left', '↑': 'up', '↓': 'down', '→': 'right'}
+        for text, direction in nav_buttons.items():
+            btn = QPushButton(text)
+            btn.setFixedSize(30, 30)
+            btn.setStyleSheet('font-size: 14px;')
+            btn.clicked.connect(lambda checked, d=direction: self.rotate(d))
+            controls_layout.addWidget(btn)
         
-        self.up_btn.clicked.connect(lambda: self.rotate('up'))
-        self.down_btn.clicked.connect(lambda: self.rotate('down'))
-        self.left_btn.clicked.connect(lambda: self.rotate('left'))
-        self.right_btn.clicked.connect(lambda: self.rotate('right'))
+        controls_layout.addSpacing(20)  # Add space between navigation and colors
         
-        for btn in [self.up_btn, self.down_btn, self.left_btn, self.right_btn]:
-            btn.setFixedSize(60, 60)
-            btn.setStyleSheet('font-size: 24px;')
-        
-        nav_layout.addWidget(self.left_btn)
-        nav_layout.addWidget(self.right_btn)
-        controls_layout.addWidget(self.up_btn, alignment=Qt.AlignHCenter)
-        controls_layout.addLayout(nav_layout)
-        controls_layout.addWidget(self.down_btn, alignment=Qt.AlignHCenter)
-        
-        # Color selection buttons
+        # Color buttons
         colors = [
-            ('Red', 'background-color: red', CubeColor.RED),
-            ('Yellow', 'background-color: yellow', CubeColor.YELLOW),
-            ('Green', 'background-color: green', CubeColor.GREEN),
-            ('Blue', 'background-color: blue', CubeColor.BLUE),
-            ('Orange', 'background-color: orange', CubeColor.ORANGE),
-            ('White', 'background-color: white', CubeColor.WHITE)
+            ('Red', 'red', CubeColor.RED),
+            ('Yellow', 'yellow', CubeColor.YELLOW),
+            ('Green', 'green', CubeColor.GREEN),
+            ('Blue', 'blue', CubeColor.BLUE),
+            ('Orange', 'orange', CubeColor.ORANGE),
+            ('White', 'white', CubeColor.WHITE)
         ]
         
-        for name, style, color_enum in colors:
+        for name, color, enum in colors:
             btn = QPushButton()
-            btn.setFixedSize(100, 100)
-            btn.setStyleSheet(f'{style}; border: 2px solid black;')
-            btn.clicked.connect(lambda checked, c=color_enum: self.set_color(c))
+            btn.setFixedSize(30, 30)
+            btn.setStyleSheet(f'background-color: {color}; border: 2px solid black;')
+            btn.clicked.connect(lambda checked, c=enum: self.set_color(c))
             controls_layout.addWidget(btn)
-
-        # Add a "Get State" button
-        self.get_state_btn = QPushButton('Get Cube State')
-        self.get_state_btn.clicked.connect(self.print_cube_state)
-        controls_layout.addWidget(self.get_state_btn)
         
+        controls_layout.addStretch()  # Push everything to the left
         layout.addWidget(controls)
+        
+        # Add GL widget
+        self.gl_widget = GLWidget()
+        layout.addWidget(self.gl_widget)
 
+    def save_state(self):
+        state = self.gl_widget.cube.get_cube_state()
+        print("Saving cube state:")
+        for face_name, colors in state.items():
+            print(f"{face_name}: {[c.name for c in colors]}")
+    
+    def clear_cube(self):
+        print("Clearing cube")
+        self.gl_widget.cube = RubiksCube()
+        self.gl_widget.update()
+    
     def set_color(self, color: CubeColor):
         self.gl_widget.cube.set_selected_color(color)
 
@@ -308,12 +331,6 @@ class RubiksWindow(QMainWindow):
         elif direction == 'right':
             self.gl_widget.cube.rotation[1] += 90
         self.gl_widget.update()
-
-    def print_cube_state(self):
-        state = self.gl_widget.cube.get_cube_state()
-        print("\nCube State:")
-        for face_name, colors in state.items():
-            print(f"{face_name}: {[c.name for c in colors]}")
 
 def main():
     app = QApplication(sys.argv)
