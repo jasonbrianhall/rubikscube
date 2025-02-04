@@ -349,6 +349,7 @@ class RubiksWindow(QMainWindow):
         # Create menu bar
         menubar = self.menuBar()
         file_menu = menubar.addMenu('File')
+        view_menu = menubar.addMenu('View')  # Add new View menu
         
         # Add menu actions
         save_action = QAction('Save', self)
@@ -358,6 +359,10 @@ class RubiksWindow(QMainWindow):
         clear_action = QAction('Clear', self)
         clear_action.triggered.connect(self.clear_cube)
         file_menu.addAction(clear_action)
+
+        debug_action = QAction('Debug Cube State', self)
+        debug_action.triggered.connect(self.print_cube_state)
+        view_menu.addAction(debug_action)
         
         file_menu.addSeparator()
         
@@ -413,6 +418,24 @@ class RubiksWindow(QMainWindow):
         # Add GL widget
         self.gl_widget = GLWidget()
         layout.addWidget(self.gl_widget)
+
+    def print_cube_state(self):
+        """Print the current state of all cubelet positions and their colors"""
+        cube = self.gl_widget.cube
+        
+        print("\n=== CUBE STATE DUMP ===")
+    
+        # Sort positions for consistent output
+        positions = sorted(cube.cubelets.keys())
+    
+        for pos in positions:
+            cubelet = cube.cubelets[pos]
+            x, y, z = pos
+        
+            print(f"\nPosition ({x}, {y}, {z}):")
+            for face, color in cubelet['colors'].items():
+                if color != CubeColor.INTERIOR:  # Only show visible faces
+                    print(f"  {face:6} face: {color.name:8}")
 
     def save_state(self):
         state = self.gl_widget.cube.get_cube_state()
