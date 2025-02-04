@@ -9,6 +9,18 @@ class GLWidget(QOpenGLWidget):
     def __init__(self, parent=None):
         super(GLWidget, self).__init__(parent)
         self.cube = RubiksCube()
+        self.setFocusPolicy(Qt.StrongFocus)  # Enable key events
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Left:
+            self.cube.rotation[1] -= 45
+        elif event.key() == Qt.Key_Right:
+            self.cube.rotation[1] += 45
+        elif event.key() == Qt.Key_Up:
+            self.cube.rotation[0] -= 45
+        elif event.key() == Qt.Key_Down:
+            self.cube.rotation[0] += 45
+        self.update()
 
     def initializeGL(self):
         glEnable(GL_DEPTH_TEST)
@@ -26,7 +38,6 @@ class GLWidget(QOpenGLWidget):
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
         self.cube.draw()
-        self.update()
 
 class RubiksCube:
     def __init__(self):
@@ -104,6 +115,12 @@ class RubiksWindow(QMainWindow):
         self.left_btn = QPushButton('←')
         self.right_btn = QPushButton('→')
         
+        # Connect button clicks to rotation methods
+        self.up_btn.clicked.connect(lambda: self.rotate('up'))
+        self.down_btn.clicked.connect(lambda: self.rotate('down'))
+        self.left_btn.clicked.connect(lambda: self.rotate('left'))
+        self.right_btn.clicked.connect(lambda: self.rotate('right'))
+        
         for btn in [self.up_btn, self.down_btn, self.left_btn, self.right_btn]:
             btn.setFixedSize(60, 60)
             btn.setStyleSheet('font-size: 24px;')
@@ -130,6 +147,17 @@ class RubiksWindow(QMainWindow):
             controls_layout.addWidget(btn)
         
         layout.addWidget(controls)
+
+    def rotate(self, direction):
+        if direction == 'up':
+            self.gl_widget.cube.rotation[0] -= 45
+        elif direction == 'down':
+            self.gl_widget.cube.rotation[0] += 45
+        elif direction == 'left':
+            self.gl_widget.cube.rotation[1] -= 45
+        elif direction == 'right':
+            self.gl_widget.cube.rotation[1] += 45
+        self.gl_widget.update()
 
 def main():
     app = QApplication(sys.argv)
