@@ -379,33 +379,38 @@ class RubiksCube:
     def next_solution_step(self):
         """Execute next step in the solution"""
         if not self.is_solving or self.current_step >= len(self.solution_steps) - 1:
+            print("No more steps or not solving")
             return False
             
         self.current_step += 1
         face, direction = self.solution_steps[self.current_step]
-        direction_val = 1 if direction == 'CW' else -1
-        
-        if face == 'top':
-            self.start_row_rotation(direction_val, rotation_row=1)
-        elif face == 'bottom':
-            self.start_row_rotation(direction_val, rotation_row=-1)
-        elif face == 'left':
-            self.start_column_rotation(direction_val, rotation_column=-1)
-        elif face == 'right':
-            self.start_column_rotation(direction_val, rotation_column=1)
-        elif face == 'front':
-            # Front face rotation requires all three columns to rotate
-            self.start_column_rotation(direction_val, rotation_column=-1)
-            self.start_column_rotation(direction_val, rotation_column=0)
-            self.start_column_rotation(direction_val, rotation_column=1)
-        elif face == 'back':
-            # Back face rotation is opposite direction of front
-            self.start_column_rotation(-direction_val, rotation_column=-1)
-            self.start_column_rotation(-direction_val, rotation_column=0)
-            self.start_column_rotation(-direction_val, rotation_column=1)
+        print(f"Current step {self.current_step}: {face}_{direction}")
+    
+        direction_val = 1 if direction == "CW" else -1
+    
+        if face == "top":
+            print("Starting top row rotation")
+            return self.start_row_rotation(direction_val, rotation_row=1)
+        elif face == "bottom":
+            print("Starting bottom row rotation")
+            return self.start_row_rotation(direction_val, rotation_row=-1)
+        elif face == "left":
+            print("Starting left column rotation")
+            result = self.start_column_rotation(direction_val, rotation_column=-1)
+            print(f"Rotation start result: {result}")
+            return result
+        elif face == "right":
+            print("Starting right column rotation") 
+            return self.start_column_rotation(direction_val, rotation_column=1)
+        elif face == "front":
+            print("Starting front rotation")
+            return self.start_column_rotation(direction_val, rotation_column=0)
+        elif face == "back":
+            print("Starting back rotation")
+            return self.start_column_rotation(-direction_val, rotation_column=0)
         
         return True
-
+        
     def previous_solution_step(self):
         """Undo the last solution step"""
         if not self.is_solving or self.current_step < 0:
@@ -443,14 +448,17 @@ class RubiksCube:
         self.current_step = -1
 
     def start_column_rotation(self, direction, rotation_column=1):
-        """Start rotating the front column. Direction: -1 for up, 1 for down"""
+        """Start rotating a column"""
+        print(f"Attempting column rotation with direction {direction}, column {rotation_column}")
         if not self.is_animating and not self.rotating_column:
+            print("Animation starting - setting rotation parameters")
             self.rotating_column = True
             self.column_rotation_angle = 0
             self.target_column_angle = 90 * direction
             self.column_rotation_direction = direction
-            self.rotating_col_x = rotation_column  # Front column x-coordinate (changed from 0 to 1)
+            self.rotating_col_x = rotation_column
             return True
+        print("Animation blocked - already animating or rotating")
         return False
 
 

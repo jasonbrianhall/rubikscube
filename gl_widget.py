@@ -14,6 +14,16 @@ class GLWidget(QOpenGLWidget):
         self.animation_timer.timeout.connect(self.update_animation)
         self.animation_timer.setInterval(16)
 
+    def next_step(self):
+        """Execute next solution step"""
+        print("GLWidget: Next step pressed")
+        if self.cube.next_solution_step():
+            print("GLWidget: Starting animation timer")
+            self.animation_timer.start()
+            self.update()
+        else:
+            print("GLWidget: No step to animate")
+
     def keyPressEvent(self, event):
         if not self.cube.is_animating:
             if event.key() == Qt.Key_Left:
