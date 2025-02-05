@@ -6,6 +6,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 import numpy as np
 from PyQt5.QtCore import QTimer
+import json
 
 
 class CubeColor(Enum):
@@ -363,6 +364,11 @@ class RubiksWindow(QMainWindow):
         debug_action = QAction('Debug Cube State', self)
         debug_action.triggered.connect(self.print_cube_state)
         view_menu.addAction(debug_action)
+
+        debug_action = QAction('Test Dict Creation', self)
+        debug_action.triggered.connect(self.convert_cube_to_dict)
+        view_menu.addAction(debug_action)
+
         
         file_menu.addSeparator()
         
@@ -436,6 +442,43 @@ class RubiksWindow(QMainWindow):
             for face, color in cubelet['colors'].items():
                 if color != CubeColor.INTERIOR:  # Only show visible faces
                     print(f"  {face:6} face: {color.name:8}")
+
+    def convert_cube_to_dict(self):
+        """Convert the cube state to a dictionary mapping coordinates to colors for each face"""
+        cube = self.gl_widget.cube
+        cube_dict = {
+            'front': {},
+            'back': {},
+            'left': {},
+            'right': {},
+            'top': {},
+            'bottom': {}
+        }
+    
+        # Mapping from 3D coordinates to 2D face positions
+        face_mappings = {
+            'front':  {(x, y, 1): (1-y, x+1) for x in range(-1, 2) for y in range(-1, 2)},
+            'back':   {(x, y, -1): (1-y, 1-x) for x in range(-1, 2) for y in range(-1, 2)},
+            'left':   {(-1, y, z): (1-y, 1-z) for y in range(-1, 2) for z in range(-1, 2)},
+            'right':  {(1, y, z): (1-y, z+1) for y in range(-1, 2) for z in range(-1, 2)},
+            'top':    {(x, 1, z): (1-z, x+1) for x in range(-1, 2) for z in range(-1, 2)},
+            'bottom': {(x, -1, z): (z+1, x+1) for x in range(-1, 2) for z in range(-1, 2)}
+        }
+    
+        # Fill the dictionary
+        for pos, cubelet in cube.cubelets.items():
+            x, y, z = pos
+            for face_name, mapping in face_mappings.items():
+                if pos in mapping:
+                    if face_name in cubelet['colors']:
+                        row, col = mapping[pos]
+                        # Convert position tuple to string key
+                        pos_key = f"{row},{col}"
+                        cube_dict[face_name][pos_key] = cubelet['colors'][face_name].name
+    
+        print(json.dumps(cube_dict, indent=3))
+        return cube_dict
+
 
     def save_state(self):
         state = self.gl_widget.cube.get_cube_state()
