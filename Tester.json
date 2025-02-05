@@ -1,0 +1,68 @@
+{
+   "front": {
+      "2,0": "BLUE",
+      "1,0": "ORANGE",
+      "0,0": "WHITE",
+      "2,1": "YELLOW",
+      "1,1": "RED",
+      "0,1": "ORANGE",
+      "2,2": "WHITE",
+      "1,2": "WHITE",
+      "0,2": "GREEN"
+   },
+   "back": {
+      "2,2": "GREEN",
+      "1,2": "RED",
+      "0,2": "GREEN",
+      "2,1": "ORANGE",
+      "1,1": "ORANGE",
+      "0,1": "YELLOW",
+      "2,0": "RED",
+      "1,0": "RED",
+      "0,0": "RED"
+   },
+   "left": {
+      "2,2": "YELLOW",
+      "2,1": "YELLOW",
+      "2,0": "YELLOW",
+      "1,2": "BLUE",
+      "1,1": "WHITE",
+      "1,0": "GREEN",
+      "0,2": "RED",
+      "0,1": "WHITE",
+      "0,0": "ORANGE"
+   },
+   "right": {
+      "2,0": "YELLOW",
+      "2,1": "BLUE",
+      "2,2": "GREEN",
+      "1,0": "GREEN",
+      "1,1": "YELLOW",
+      "1,2": "GREEN",
+      "0,0": "WHITE",
+      "0,1": "WHITE",
+      "0,2": "YELLOW"
+   },
+   "top": {
+      "2,0": "WHITE",
+      "1,0": "RED",
+      "0,0": "BLUE",
+      "2,1": "ORANGE",
+      "1,1": "BLUE",
+      "0,1": "BLUE",
+      "2,2": "BLUE",
+      "1,2": "BLUE",
+      "0,2": "RED"
+   },
+   "bottom": {
+      "0,0": "ORANGE",
+      "1,0": "RED",
+      "2,0": "ORANGE",
+      "0,1": "WHITE",
+      "1,1": "GREEN",
+      "2,1": "GREEN",
+      "0,2": "BLUE",
+      "1,2": "YELLOW",
+      "2,2": "ORANGE"
+   }
+}
