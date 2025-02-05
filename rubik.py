@@ -1,12 +1,14 @@
 import sys
 from enum import Enum
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QOpenGLWidget, QMenuBar, QMenu, QAction
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QOpenGLWidget, QMenuBar, QMenu, QAction, QFileDialog
+
 from PyQt5.QtCore import Qt
 from OpenGL.GL import *
 from OpenGL.GLU import *
 import numpy as np
 from PyQt5.QtCore import QTimer
 import json
+import rubiksolver
 
 
 class CubeColor(Enum):
@@ -354,9 +356,10 @@ class RubiksWindow(QMainWindow):
         
         # Add menu actions
         save_action = QAction('Save', self)
-        save_action.triggered.connect(self.save_state)
-        file_menu.addAction(save_action)
-        
+        save_action.setShortcut('Ctrl+S')
+        save_action.triggered.connect(self.save_cube_state)
+
+        file_menu.addAction(save_action)        
         clear_action = QAction('Clear', self)
         clear_action.triggered.connect(self.clear_cube)
         file_menu.addAction(clear_action)
@@ -477,7 +480,29 @@ class RubiksWindow(QMainWindow):
                         cube_dict[face_name][pos_key] = cubelet['colors'][face_name].name
     
         print(json.dumps(cube_dict, indent=3))
+        #data=robiksolver.solve_cube(cube_dict)
         return cube_dict
+
+    def save_cube_state(self):
+        """Save the current cube state to a JSON file"""
+    
+        filename, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Cube State",
+            "",
+            "JSON Files (*.json);;All Files (*)"
+        )
+    
+        if filename:
+            # Use the instance method to get the cube dictionary
+            cube_dict = self.convert_cube_to_dict()
+        
+            # Save to file
+            if not filename.endswith(".json"):
+                filename+=".json"
+            with open(filename, 'w') as f:
+                json.dump(cube_dict, f, indent=3)
+            print(f"Saved cube state to {filename}")
 
 
     def save_state(self):
