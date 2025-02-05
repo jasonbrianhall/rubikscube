@@ -354,6 +354,11 @@ class RubiksWindow(QMainWindow):
         file_menu = menubar.addMenu('File')
         view_menu = menubar.addMenu('View')  # Add new View menu
         
+        solve_action = QAction('Solve', self)
+        solve_action.setShortcut('Ctrl+R')
+        solve_action.triggered.connect(self.solve_cube)
+        file_menu.addAction(solve_action)
+        
         # Add menu actions
         save_action = QAction('Save', self)
         save_action.setShortcut('Ctrl+S')
@@ -569,6 +574,28 @@ class RubiksWindow(QMainWindow):
     
     def set_color(self, color: CubeColor):
         self.gl_widget.cube.set_selected_color(color)
+
+    def solve_cube(self):
+        """Get the current cube state and pass it to the solver"""
+        try:
+            # Get the current cube state in solver format
+            cube_dict = self.convert_cube_to_dict()
+        
+            # Call the solver
+            solution = rubiksolver.solve_cube(cube_dict)
+        
+            # Display the solution
+            print("\n=== Solution Steps ===")
+            for phase, moves in solution.items():
+                print(f"\n{phase.upper()}:")
+                for move in moves:
+                    face, direction = move.split('_')
+                    print(f"  {face} {'clockwise' if direction == 'CW' else 'counterclockwise'}")
+        
+            print("\nSolution found! Check console for detailed steps.")
+        
+        except Exception as e:
+            print(f"Error solving cube: {e}")
 
     def rotate(self, direction):
         if not self.gl_widget.cube.is_animating:  # Only start new rotation if not already animating
