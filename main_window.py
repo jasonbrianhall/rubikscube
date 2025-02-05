@@ -98,9 +98,13 @@ class RubiksWindow(QMainWindow):
         controls_layout.addStretch()  # Push everything to the left
         layout.addWidget(controls)
         
+        solution_controls = self.setup_solution_controls()
+        layout.addWidget(solution_controls)
+
         # Add GL widget
         self.gl_widget = GLWidget()
         layout.addWidget(self.gl_widget)
+        
 
     def print_cube_state(self):
         """Print the current state of all cubelet positions and their colors"""
@@ -239,28 +243,6 @@ class RubiksWindow(QMainWindow):
     def set_color(self, color: CubeColor):
         self.gl_widget.cube.set_selected_color(color)
 
-    def solve_cube(self):
-        """Get the current cube state and pass it to the solver"""
-        try:
-            # Get the current cube state in solver format
-            cube_dict = self.convert_cube_to_dict()
-        
-            # Call the solver
-            solution = rubiksolver.solve_cube(cube_dict)
-        
-            # Display the solution
-            print("\n=== Solution Steps ===")
-            for phase, moves in solution.items():
-                print(f"\n{phase.upper()}:")
-                for move in moves:
-                    face, direction = move.split('_')
-                    print(f"  {face} {'clockwise' if direction == 'CW' else 'counterclockwise'}")
-        
-            print("\nSolution found! Check console for detailed steps.")
-        
-        except Exception as e:
-            print(f"Error solving cube: {e}")
-
     def rotate(self, direction):
         if not self.gl_widget.cube.is_animating:  # Only start new rotation if not already animating
             if direction == 'up':
@@ -271,4 +253,78 @@ class RubiksWindow(QMainWindow):
                 self.gl_widget.start_rotation(1, -90)
             elif direction == 'right':
                 self.gl_widget.start_rotation(1, 90)
+
+    def setup_solution_controls(self):
+        """Add solution control buttons"""
+        solution_controls = QWidget()
+        solution_controls.setMaximumHeight(40)
+        solution_layout = QHBoxLayout(solution_controls)
+        solution_layout.setSpacing(2)
+        solution_layout.setContentsMargins(5, 0, 5, 0)
+        
+        # Add solution control buttons
+        self.prev_step_btn = QPushButton('←')
+        self.prev_step_btn.setFixedSize(30, 30)
+        self.prev_step_btn.clicked.connect(self.previous_step)
+        self.prev_step_btn.setEnabled(False)
+        
+        self.next_step_btn = QPushButton('→')
+        self.next_step_btn.setFixedSize(30, 30)
+        self.next_step_btn.clicked.connect(self.next_step)
+        self.next_step_btn.setEnabled(False)
+        
+        self.reset_solution_btn = QPushButton('Reset')
+        self.reset_solution_btn.setFixedSize(60, 30)
+        self.reset_solution_btn.clicked.connect(self.reset_solution)
+        self.reset_solution_btn.setEnabled(False)
+        
+        solution_layout.addWidget(self.prev_step_btn)
+        solution_layout.addWidget(self.next_step_btn)
+        solution_layout.addWidget(self.reset_solution_btn)
+        solution_layout.addStretch()
+        
+        return solution_controls
+    
+    def solve_cube(self):
+        """Modified solve_cube method to handle solution animation"""
+        try:
+            cube_dict = self.convert_cube_to_dict()
+            solution = rubiksolver.solve_cube(cube_dict)
+            
+            # Store solution and prepare for animation
+            self.gl_widget.cube.set_solution_steps(solution)
+            self.gl_widget.cube.start_solution_animation()
+            
+            # Enable solution controls
+            self.next_step_btn.setEnabled(True)
+            self.reset_solution_btn.setEnabled(True)
+            
+            print("\n=== Solution Ready ===")
+            print("Use the arrow buttons to step through the solution.")
+            
+        except Exception as e:
+            print(f"Error solving cube: {e}")
+    
+    def next_step(self):
+        """Execute next solution step"""
+        if self.gl_widget.cube.next_solution_step():
+            self.prev_step_btn.setEnabled(True)
+            self.gl_widget.update()
+        else:
+            self.next_step_btn.setEnabled(False)
+    
+    def previous_step(self):
+        """Undo last solution step"""
+        if self.gl_widget.cube.previous_solution_step():
+            self.next_step_btn.setEnabled(True)
+            self.gl_widget.update()
+        else:
+            self.prev_step_btn.setEnabled(False)
+    
+    def reset_solution(self):
+        """Reset the solution animation"""
+        self.gl_widget.cube.reset_solution()
+        self.next_step_btn.setEnabled(True)
+        self.prev_step_btn.setEnabled(False)
+        self.gl_widget.update()
 
