@@ -396,9 +396,7 @@ class RubiksCube:
             return self.start_row_rotation(direction_val, rotation_row=-1)
         elif face == "left":
             print("Starting left column rotation")
-            result = self.start_column_rotation(direction_val, rotation_column=-1)
-            print(f"Rotation start result: {result}")
-            return result
+            return self.start_column_rotation(direction_val, rotation_column=-1)
         elif face == "right":
             print("Starting right column rotation") 
             return self.start_column_rotation(direction_val, rotation_column=1)

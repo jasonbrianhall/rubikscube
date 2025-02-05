@@ -550,6 +550,22 @@ class RubiksCube:
                 return i
         return 0  # Default to no rotation if no match found
 
+    def is_solution_complete(self):
+        """Check if the cube is completely solved."""
+        for face in self.state:
+            center_color = self.get_center_color(face)
+            for x in range(3):
+                for y in range(3):
+                    if self.get_color(face, x, y) != center_color:
+                        return False
+        return True
+
+    def validate_solution_length(self):
+        """Check if solution length is valid (<=20 moves)."""
+        total_moves = len(self.solution['cross']) + len(self.solution['f2l']) + \
+                     len(self.solution['oll']) + len(self.solution['pll'])
+        return total_moves <= 20
+
 def validate_cube_state(cube_state):
     """
     Validates if a given cube state represents a valid 3x3 Rubik's cube.
@@ -598,13 +614,37 @@ def solve_cube(cube_state):
     
     Returns:
         dict: Dictionary containing the solution steps organized by phase
+        or None if solution is invalid
     """
     cube = RubiksCube(cube_state)
     
-    # Solve using CFOP method
-    cube.solve_cross()  # White cross
-    cube.solve_f2l()    # First two layers
-    cube.solve_oll()    # Orientation of last layer
-    cube.solve_pll()    # Permutation of last layer
+    print("Initial state validation:", validate_cube_state(cube_state))
     
+    # Solve using CFOP method
+    cube.solve_cross()
+    print("After cross:", len(cube.solution['cross']), "moves")
+    
+    cube.solve_f2l()
+    print("After F2L:", len(cube.solution['f2l']), "moves")
+    
+    cube.solve_oll()
+    print("After OLL:", len(cube.solution['oll']), "moves")
+    
+    cube.solve_pll()
+    print("After PLL:", len(cube.solution['pll']), "moves")
+    
+    total_moves = len(cube.solution['cross']) + len(cube.solution['f2l']) + \
+                  len(cube.solution['oll']) + len(cube.solution['pll'])
+    print("Total moves:", total_moves)
+    print("Solution complete:", cube.is_solution_complete())
+    print("Solution valid length:", cube.validate_solution_length())
+    
+    #if not cube.validate_solution_length():
+    #    print("Solution rejected: Too many moves")
+    #    return None
+        
+    if not cube.is_solution_complete():
+        print("Solution rejected: Cube not solved")
+        return None
+        
     return cube.solution
