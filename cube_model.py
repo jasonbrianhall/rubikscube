@@ -11,6 +11,11 @@ class RubiksCube:
         self.target_rotation = [30, 45, 0]  # Target angles for animation
         self.is_animating = False
         self._initialize_cubes()
+        self.rotating_row = False
+        self.row_rotation_angle = 0
+        self.target_row_angle = 0
+        self.rotating_row_y = 1  # Top row y-coordinate
+        self.row_rotation_direction = 1
 
     def _initialize_cubes(self):
         """Initialize the 27 cubelets positions with interior faces"""
@@ -50,6 +55,16 @@ class RubiksCube:
                     
                     self.cubelets[key]['colors'] = colors
 
+    def start_row_rotation(self, direction):
+        """Start rotating the top row. Direction: 1 for clockwise, -1 for counterclockwise"""
+        if not self.is_animating and not self.rotating_row:
+            self.rotating_row = True
+            self.row_rotation_angle = 0
+            self.target_row_angle = 90 * direction
+            self.row_rotation_direction = direction
+            return True
+        return False
+
     def animate_rotation(self, axis, angle):
         """Start a rotation animation"""
         self.target_rotation[axis] = self.rotation[axis] + angle
@@ -57,21 +72,73 @@ class RubiksCube:
         return self.is_animating
 
     def update_animation(self):
-        """Update the rotation animation"""
+        """Update animation state for both cube view rotation and row rotation"""
         STEP_SIZE = 3  # Degrees per step
         still_animating = False
 
-        for i in range(2):  # Only animate X and Y rotation (indices 0 and 1)
-            if self.rotation[i] != self.target_rotation[i]:
-                diff = self.target_rotation[i] - self.rotation[i]
-                if abs(diff) <= STEP_SIZE:
-                    self.rotation[i] = self.target_rotation[i]
-                else:
-                    self.rotation[i] += STEP_SIZE if diff > 0 else -STEP_SIZE
-                    still_animating = True
+        if self.rotating_row:
+            # Update row rotation
+            diff = self.target_row_angle - self.row_rotation_angle
+            if abs(diff) <= STEP_SIZE:
+                self.row_rotation_angle = self.target_row_angle
+                self.rotating_row = False
+                self._complete_row_rotation()
+            else:
+                self.row_rotation_angle += STEP_SIZE if diff > 0 else -STEP_SIZE
+                still_animating = True
+        else:
+            # Existing view rotation code...
+            for i in range(2):
+                if self.rotation[i] != self.target_rotation[i]:
+                    diff = self.target_rotation[i] - self.rotation[i]
+                    if abs(diff) <= STEP_SIZE:
+                        self.rotation[i] = self.target_rotation[i]
+                    else:
+                        self.rotation[i] += STEP_SIZE if diff > 0 else -STEP_SIZE
+                        still_animating = True
 
-        self.is_animating = still_animating
-        return still_animating
+        self.is_animating = still_animating or self.rotating_row
+        return self.is_animating
+
+    def _complete_row_rotation(self):
+        """Apply the rotation to the cube state after animation completes"""
+        # Get all cubelets in the top row (y = 1)
+        row_cubelets = {pos: data for pos, data in self.cubelets.items() if pos[1] == self.rotating_row_y}
+        
+        # Calculate new positions
+        new_cubelets = {}
+        for pos, data in row_cubelets.items():
+            x, y, z = pos
+            # Rotate 90 degrees clockwise around Y axis
+            if self.row_rotation_direction > 0:
+                new_pos = (z, y, -x)
+            else:
+                new_pos = (-z, y, x)
+            
+            # Create new cubelet data with rotated colors
+            new_data = data.copy()
+            new_colors = {}
+            for face, color in data['colors'].items():
+                if self.row_rotation_direction > 0:
+                    if face == 'front': new_colors['left'] = color
+                    elif face == 'left': new_colors['back'] = color
+                    elif face == 'back': new_colors['right'] = color
+                    elif face == 'right': new_colors['front'] = color
+                    else: new_colors[face] = color
+                else:
+                    if face == 'front': new_colors['right'] = color
+                    elif face == 'right': new_colors['back'] = color
+                    elif face == 'back': new_colors['left'] = color
+                    elif face == 'left': new_colors['front'] = color
+                    else: new_colors[face] = color
+            
+            new_data['colors'] = new_colors
+            new_cubelets[new_pos] = new_data
+        
+        # Update cube state
+        for pos, data in new_cubelets.items():
+            self.cubelets[pos] = data
+
         
     def _draw_cubelet_face(self, x, y, z, face_type, color):
         """Draw a single face of a cubelet"""
@@ -170,7 +237,7 @@ class RubiksCube:
         return inside
 
     def draw(self):
-        self.face_coords = {}  # Reset face coordinates for this frame
+        self.face_coords = {}
         
         glRotatef(self.rotation[0], 1, 0, 0)
         glRotatef(self.rotation[1], 0, 1, 0)
@@ -178,9 +245,16 @@ class RubiksCube:
         for pos, cubelet in self.cubelets.items():
             glPushMatrix()
             x, y, z = pos
-            glTranslatef(x, y, z)
             
-            # Draw each face of the cubelet
+            # Apply row rotation if this cubelet is in the rotating row
+            if y == self.rotating_row_y and self.rotating_row:
+                glTranslatef(0, y, 0)  # Move to rotation axis
+                glRotatef(self.row_rotation_angle, 0, 1, 0)  # Apply rotation
+                glTranslatef(x, 0, z)  # Move to final position
+            else:
+                glTranslatef(x, y, z)
+            
+            # Draw cubelet faces
             for face_type, _ in cubelet['faces']:
                 self._draw_cubelet_face(x, y, z, face_type, cubelet['colors'][face_type])
             
