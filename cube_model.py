@@ -102,43 +102,61 @@ class RubiksCube:
 
     def _complete_row_rotation(self):
         """Apply the rotation to the cube state after animation completes"""
-        # Get all cubelets in the top row (y = 1)
         row_cubelets = {pos: data for pos, data in self.cubelets.items() if pos[1] == self.rotating_row_y}
         
-        # Calculate new positions
+        # First pass: identify exterior faces and their colors
+        exterior_faces = {}
+        for pos, data in row_cubelets.items():
+            x, y, z = pos
+            exterior_faces[pos] = {}
+            
+            for face_type, color in data['colors'].items():
+                if color != CubeColor.INTERIOR:
+                    exterior_faces[pos][face_type] = color
+    
+        # Second pass: rotate and preserve exterior colors
         new_cubelets = {}
         for pos, data in row_cubelets.items():
             x, y, z = pos
-            # Rotate 90 degrees clockwise around Y axis
             if self.row_rotation_direction > 0:
                 new_pos = (z, y, -x)
             else:
                 new_pos = (-z, y, x)
-            
-            # Create new cubelet data with rotated colors
+                
             new_data = data.copy()
             new_colors = {}
-            for face, color in data['colors'].items():
-                if self.row_rotation_direction > 0:
-                    if face == 'front': new_colors['left'] = color
-                    elif face == 'left': new_colors['back'] = color
-                    elif face == 'back': new_colors['right'] = color
-                    elif face == 'right': new_colors['front'] = color
-                    else: new_colors[face] = color
+    
+            # Initialize all faces as interior
+            for face_type in ['front', 'back', 'left', 'right', 'top', 'bottom']:
+                new_x, new_y, new_z = new_pos
+                if ((face_type == 'front' and new_z == 1) or 
+                    (face_type == 'back' and new_z == -1) or
+                    (face_type == 'left' and new_x == -1) or
+                    (face_type == 'right' and new_x == 1) or
+                    (face_type == 'top' and new_y == 1) or
+                    (face_type == 'bottom' and new_y == -1)):
+                    if face_type == 'top' or face_type == 'bottom':
+                        new_colors[face_type] = exterior_faces[pos].get(face_type, CubeColor.UNASSIGNED)
+                    else:
+                        if self.row_rotation_direction > 0:
+                            if face_type == 'front': new_colors[face_type] = exterior_faces[pos].get('right', CubeColor.UNASSIGNED)
+                            elif face_type == 'right': new_colors[face_type] = exterior_faces[pos].get('back', CubeColor.UNASSIGNED)
+                            elif face_type == 'back': new_colors[face_type] = exterior_faces[pos].get('left', CubeColor.UNASSIGNED)
+                            elif face_type == 'left': new_colors[face_type] = exterior_faces[pos].get('front', CubeColor.UNASSIGNED)
+                        else:
+                            if face_type == 'front': new_colors[face_type] = exterior_faces[pos].get('left', CubeColor.UNASSIGNED)
+                            elif face_type == 'right': new_colors[face_type] = exterior_faces[pos].get('front', CubeColor.UNASSIGNED)
+                            elif face_type == 'back': new_colors[face_type] = exterior_faces[pos].get('right', CubeColor.UNASSIGNED)
+                            elif face_type == 'left': new_colors[face_type] = exterior_faces[pos].get('back', CubeColor.UNASSIGNED)
                 else:
-                    if face == 'front': new_colors['right'] = color
-                    elif face == 'right': new_colors['back'] = color
-                    elif face == 'back': new_colors['left'] = color
-                    elif face == 'left': new_colors['front'] = color
-                    else: new_colors[face] = color
-            
+                    new_colors[face_type] = CubeColor.INTERIOR
+    
             new_data['colors'] = new_colors
             new_cubelets[new_pos] = new_data
-        
+    
         # Update cube state
         for pos, data in new_cubelets.items():
             self.cubelets[pos] = data
-
         
     def _draw_cubelet_face(self, x, y, z, face_type, color):
         """Draw a single face of a cubelet"""
@@ -265,7 +283,7 @@ class RubiksCube:
         vertices = [
             [-0.4, 0.4, 0.4], [-0.4, -0.4, 0.4], [0.4, -0.4, 0.4], [0.4, 0.4, 0.4]
         ]
-        
+    
         # Transform vertices based on face type
         if face_type == 'back':
             vertices = [[-v[0], v[1], -v[2]] for v in vertices]
@@ -277,39 +295,41 @@ class RubiksCube:
             vertices = [[v[0], v[2], -v[1]] for v in vertices]
         elif face_type == 'bottom':
             vertices = [[v[0], -v[2], v[1]] for v in vertices]
-        
+    
         # Get screen coordinates for click detection
-        modelview = glGetDoublev(GL_MODELVIEW_MATRIX)
-        projection = glGetDoublev(GL_PROJECTION_MATRIX)
-        viewport = glGetIntegerv(GL_VIEWPORT)
+        if color != CubeColor.INTERIOR:  # Only track clickable faces
+            modelview = glGetDoublev(GL_MODELVIEW_MATRIX)
+            projection = glGetDoublev(GL_PROJECTION_MATRIX)
+            viewport = glGetIntegerv(GL_VIEWPORT)
         
-        screen_coords = []
-        for v in vertices:
-            winX, winY, winZ = gluProject(v[0], v[1], v[2], modelview, projection, viewport)
-            screen_x = int(round(winX) - viewport[0])
-            screen_y = int(viewport[3] - round(winY) - viewport[1])
-            screen_coords.append((screen_x, screen_y, winZ))
+            screen_coords = []
+            for v in vertices:
+                winX, winY, winZ = gluProject(v[0], v[1], v[2], modelview, projection, viewport)
+                screen_x = int(round(winX) - viewport[0])
+                screen_y = int(viewport[3] - round(winY) - viewport[1])
+                screen_coords.append((screen_x, screen_y, winZ))
         
-        # Store these coordinates for click detection
-        key = (x, y, z)
-        if key not in self.face_coords:
-            self.face_coords[key] = {}
-        self.face_coords[key][face_type] = screen_coords
-        
+            # Store these coordinates for click detection
+            key = (x, y, z)
+            if key not in self.face_coords:
+                self.face_coords[key] = {}
+            self.face_coords[key][face_type] = screen_coords
+    
         # Draw the colored face
         glBegin(GL_QUADS)
         glColor3f(*color.value)
         for v in vertices:
             glVertex3fv(v)
         glEnd()
-        
-        # Draw black edges
-        glColor3f(0, 0, 0)
-        glLineWidth(2.0)
-        glBegin(GL_LINE_LOOP)
-        for v in vertices:
-            glVertex3fv(v)
-        glEnd()
+    
+        # Draw black edges only for exterior faces
+        if color != CubeColor.INTERIOR:
+            glColor3f(0, 0, 0)
+            glLineWidth(2.0)
+            glBegin(GL_LINE_LOOP)
+            for v in vertices:
+                glVertex3fv(v)
+            glEnd()
 
     def get_cube_state(self):
         """Return the current state of the cube in a solver-friendly format"""
