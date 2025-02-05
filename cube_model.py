@@ -383,26 +383,56 @@ class RubiksCube:
             
         self.current_step += 1
         face, direction = self.solution_steps[self.current_step]
+        direction_val = 1 if direction == 'CW' else -1
         
-        if direction == 'CW':
-            self.rotate_face_clockwise(face)
-        else:  # CCW
-            self.rotate_face_counterclockwise(face)
+        if face == 'top':
+            self.start_row_rotation(direction_val, rotation_row=1)
+        elif face == 'bottom':
+            self.start_row_rotation(direction_val, rotation_row=-1)
+        elif face == 'left':
+            self.start_column_rotation(direction_val, rotation_column=-1)
+        elif face == 'right':
+            self.start_column_rotation(direction_val, rotation_column=1)
+        elif face == 'front':
+            # Front face rotation requires all three columns to rotate
+            self.start_column_rotation(direction_val, rotation_column=-1)
+            self.start_column_rotation(direction_val, rotation_column=0)
+            self.start_column_rotation(direction_val, rotation_column=1)
+        elif face == 'back':
+            # Back face rotation is opposite direction of front
+            self.start_column_rotation(-direction_val, rotation_column=-1)
+            self.start_column_rotation(-direction_val, rotation_column=0)
+            self.start_column_rotation(-direction_val, rotation_column=1)
         
         return True
-    
+
     def previous_solution_step(self):
         """Undo the last solution step"""
         if not self.is_solving or self.current_step < 0:
             return False
             
         face, direction = self.solution_steps[self.current_step]
+        # Reverse the direction
+        direction_val = -1 if direction == 'CW' else 1
         
-        # Apply opposite rotation
-        if direction == 'CW':
-            self.rotate_face_counterclockwise(face)
-        else:  # CCW
-            self.rotate_face_clockwise(face)
+        if face == 'top':
+            self.start_row_rotation(direction_val, rotation_row=1)
+        elif face == 'bottom':
+            self.start_row_rotation(direction_val, rotation_row=-1)
+        elif face == 'left':
+            self.start_column_rotation(direction_val, rotation_column=-1)
+        elif face == 'right':
+            self.start_column_rotation(direction_val, rotation_column=1)
+        elif face == 'front':
+            # Front face rotation requires all three columns to rotate
+            self.start_column_rotation(direction_val, rotation_column=-1)
+            self.start_column_rotation(direction_val, rotation_column=0)
+            self.start_column_rotation(direction_val, rotation_column=1)
+        elif face == 'back':
+            # Back face rotation is opposite direction of front
+            self.start_column_rotation(-direction_val, rotation_column=-1)
+            self.start_column_rotation(-direction_val, rotation_column=0)
+            self.start_column_rotation(-direction_val, rotation_column=1)
         
         self.current_step -= 1
         return True
