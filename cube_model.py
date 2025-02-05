@@ -16,6 +16,10 @@ class RubiksCube:
         self.target_row_angle = 0
         self.rotating_row_y = 1  # Top row y-coordinate
         self.row_rotation_direction = 1
+        self.rotating_column = False
+        self.column_rotation_angle = 0
+        self.target_column_angle = 0
+        self.rotating_col_x = 0
 
     def _initialize_cubes(self):
         """Initialize the 27 cubelets positions with interior faces"""
@@ -72,12 +76,11 @@ class RubiksCube:
         return self.is_animating
 
     def update_animation(self):
-        """Update animation state for both cube view rotation and row rotation"""
-        STEP_SIZE = 3  # Degrees per step
+        """Update animation state for both cube view rotation and row/column rotation"""
+        STEP_SIZE = 3
         still_animating = False
-
+    
         if self.rotating_row:
-            # Update row rotation
             diff = self.target_row_angle - self.row_rotation_angle
             if abs(diff) <= STEP_SIZE:
                 self.row_rotation_angle = self.target_row_angle
@@ -86,8 +89,16 @@ class RubiksCube:
             else:
                 self.row_rotation_angle += STEP_SIZE if diff > 0 else -STEP_SIZE
                 still_animating = True
+        elif self.rotating_column:
+            diff = self.target_column_angle - self.column_rotation_angle
+            if abs(diff) <= STEP_SIZE:
+                self.column_rotation_angle = self.target_column_angle
+                self.rotating_column = False
+                self._complete_column_rotation()
+            else:
+                self.column_rotation_angle += STEP_SIZE if diff > 0 else -STEP_SIZE
+                still_animating = True
         else:
-            # Existing view rotation code...
             for i in range(2):
                 if self.rotation[i] != self.target_rotation[i]:
                     diff = self.target_rotation[i] - self.rotation[i]
@@ -96,8 +107,8 @@ class RubiksCube:
                     else:
                         self.rotation[i] += STEP_SIZE if diff > 0 else -STEP_SIZE
                         still_animating = True
-
-        self.is_animating = still_animating or self.rotating_row
+    
+        self.is_animating = still_animating or self.rotating_row or self.rotating_column
         return self.is_animating
 
     def _complete_row_rotation(self):
@@ -245,28 +256,30 @@ class RubiksCube:
 
     def draw(self):
         self.face_coords = {}
-        
+    
         glRotatef(self.rotation[0], 1, 0, 0)
         glRotatef(self.rotation[1], 0, 1, 0)
-        
+    
         for pos, cubelet in self.cubelets.items():
             glPushMatrix()
             x, y, z = pos
-            
-            # Apply row rotation if this cubelet is in the rotating row
-            if y == self.rotating_row_y and self.rotating_row:
-                glTranslatef(0, y, 0)  # Move to rotation axis
-                glRotatef(self.row_rotation_angle, 0, 1, 0)  # Apply rotation
-                glTranslatef(x, 0, z)  # Move to final position
+        
+            if self.rotating_row and y == self.rotating_row_y:
+                glTranslatef(0, y, 0)
+                glRotatef(self.row_rotation_angle, 0, 1, 0)
+                glTranslatef(x, 0, z)
+            elif self.rotating_column and x == self.rotating_col_x:
+                glTranslatef(x, 0, 0)
+                glRotatef(self.column_rotation_angle, 1, 0, 0)
+                glTranslatef(0, y, z)
             else:
                 glTranslatef(x, y, z)
-            
-            # Draw cubelet faces
+        
             for face_type, _ in cubelet['faces']:
                 self._draw_cubelet_face(x, y, z, face_type, cubelet['colors'][face_type])
-            
+        
             glPopMatrix()
-
+            
     def _draw_cubelet_face(self, x, y, z, face_type, color):
         """Draw a single face of a cubelet"""
         vertices = [
@@ -397,6 +410,19 @@ class RubiksCube:
         """Start the solution animation"""
         self.is_solving = True
         self.current_step = -1
+
+    def start_column_rotation(self, direction):
+        """Start rotating the front column. Direction: -1 for up, 1 for down"""
+        if not self.is_animating and not self.rotating_column:
+            self.rotating_column = True
+            self.column_rotation_angle = 0
+            self.target_column_angle = 90 * direction
+            self.column_rotation_direction = direction
+            self.rotating_col_x = 1  # Front column x-coordinate (changed from 0 to 1)
+            return True
+        return False
+
+
     
     def reset_solution(self):
         """Reset the solution animation to the beginning"""
@@ -604,3 +630,62 @@ class RubiksCube:
                 for z in [-1, 0, 1]:
                     affected.append((x, -1, z))
         return affected                
+        
+    def _complete_column_rotation(self):
+        """Apply the rotation to the cube state after column animation completes"""
+        column_cubelets = {pos: data for pos, data in self.cubelets.items() if pos[0] == self.rotating_col_x}
+        
+        # First pass: store all exterior face colors
+        exterior_faces = {}
+        for pos, data in column_cubelets.items():
+            x, y, z = pos
+            exterior_faces[pos] = {}
+            for face_type, color in data['colors'].items():
+                if color != CubeColor.INTERIOR:
+                    exterior_faces[pos][face_type] = color
+    
+        # Calculate new positions and update the cube
+        new_positions = {}
+        for pos in column_cubelets:
+            x, y, z = pos
+            if self.column_rotation_direction > 0:  # Down
+                new_positions[pos] = (x, -z, y)
+            else:  # Up
+                new_positions[pos] = (x, z, -y)
+    
+        # Update cube state with new positions and rotated colors
+        for old_pos, new_pos in new_positions.items():
+            new_colors = {}
+            # Initialize all faces as interior
+            for face_type in ['front', 'back', 'left', 'right', 'top', 'bottom']:
+                new_x, new_y, new_z = new_pos
+                if ((face_type == 'front' and new_z == 1) or 
+                    (face_type == 'back' and new_z == -1) or
+                    (face_type == 'left' and new_x == -1) or
+                    (face_type == 'right' and new_x == 1) or
+                    (face_type == 'top' and new_y == 1) or
+                    (face_type == 'bottom' and new_y == -1)):
+                    
+                    # Map colors based on rotation direction
+                    if face_type == 'left' or face_type == 'right':
+                        new_colors[face_type] = exterior_faces[old_pos].get(face_type, CubeColor.UNASSIGNED)
+                    else:
+                        if self.column_rotation_direction > 0:  # Down
+                            if face_type == 'front': new_colors[face_type] = exterior_faces[old_pos].get('top', CubeColor.UNASSIGNED)
+                            elif face_type == 'top': new_colors[face_type] = exterior_faces[old_pos].get('back', CubeColor.UNASSIGNED)
+                            elif face_type == 'back': new_colors[face_type] = exterior_faces[old_pos].get('bottom', CubeColor.UNASSIGNED)
+                            elif face_type == 'bottom': new_colors[face_type] = exterior_faces[old_pos].get('front', CubeColor.UNASSIGNED)
+                        else:  # Up
+                            if face_type == 'front': new_colors[face_type] = exterior_faces[old_pos].get('bottom', CubeColor.UNASSIGNED)
+                            elif face_type == 'top': new_colors[face_type] = exterior_faces[old_pos].get('front', CubeColor.UNASSIGNED)
+                            elif face_type == 'back': new_colors[face_type] = exterior_faces[old_pos].get('top', CubeColor.UNASSIGNED)
+                            elif face_type == 'bottom': new_colors[face_type] = exterior_faces[old_pos].get('back', CubeColor.UNASSIGNED)
+                else:
+                    new_colors[face_type] = CubeColor.INTERIOR
+    
+            # Update cubelet
+            self.cubelets[new_pos] = {
+                'pos': list(new_pos),
+                'faces': self.cubelets[old_pos]['faces'],
+                'colors': new_colors
+            }
