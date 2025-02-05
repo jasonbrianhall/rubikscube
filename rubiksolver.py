@@ -550,6 +550,45 @@ class RubiksCube:
                 return i
         return 0  # Default to no rotation if no match found
 
+def validate_cube_state(cube_state):
+    """
+    Validates if a given cube state represents a valid 3x3 Rubik's cube.
+    Returns (is_valid: bool, error_message: str)
+    """
+    # Check basic structure
+    if not isinstance(cube_state, dict):
+        return False, "Cube state must be a dictionary"
+        
+    required_faces = {"front", "back", "top", "bottom", "left", "right"}
+    if set(cube_state.keys()) != required_faces:
+        return False, "Must have exactly 6 faces: front, back, top, bottom, left, right"
+    
+    # Validate each face has 9 stickers in correct positions
+    required_positions = {f"{x},{y}" for x in range(3) for y in range(3)}
+    for face, stickers in cube_state.items():
+        if set(stickers.keys()) != required_positions:
+            return False, f"Face {face} missing required sticker positions"
+            
+    # Count colors
+    color_count = {}
+    centers = {}
+    for face, stickers in cube_state.items():
+        # Record center color
+        centers[face] = stickers["1,1"]
+        for pos, color in stickers.items():
+            color_count[color] = color_count.get(color, 0) + 1
+            
+    # Each color should appear exactly 9 times
+    if not all(count == 9 for count in color_count.values()):
+        color_counts = [f"{color}: {count}" for color, count in sorted(color_count.items())]
+        return False, f"Invalid color counts: {', '.join(color_counts)}"
+        
+    # Centers must all be different
+    if len(set(centers.values())) != 6:
+        return False, "Center pieces must all have different colors"
+
+    return True, "Valid cube state"
+
 def solve_cube(cube_state):
     """
     Solves a Rubik's cube using the CFOP method (Fridrich method)

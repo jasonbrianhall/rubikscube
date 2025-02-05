@@ -289,6 +289,7 @@ class RubiksWindow(QMainWindow):
         """Modified solve_cube method to handle solution animation"""
         try:
             cube_dict = self.convert_cube_to_dict()
+            print(rubiksolver.validate_cube_state(cube_dict))
             solution = rubiksolver.solve_cube(cube_dict)
             
             # Store solution and prepare for animation
