@@ -36,6 +36,19 @@ class GLWidget(QOpenGLWidget):
             elif event.key() == Qt.Key_S:  # Rotate front column down
                 if self.cube.start_column_rotation(1):
                     self.animation_timer.start()
+            elif event.key() == Qt.Key_H:  # Rotate top row counterclockwise
+                if self.cube.start_row_rotation(-1, rotation_row=-1):
+                    self.animation_timer.start()
+            elif event.key() == Qt.Key_F:  # Rotate top row clockwise
+                if self.cube.start_row_rotation(1, rotation_row=-1):
+                    self.animation_timer.start()                
+            elif event.key() == Qt.Key_T:  # Rotate front column up
+                if self.cube.start_column_rotation(-1, rotation_column=-1):
+                    self.animation_timer.start()
+            elif event.key() == Qt.Key_G:  # Rotate front column down
+                if self.cube.start_column_rotation(1, rotation_column=-1):
+                    self.animation_timer.start()
+
 
 
     def start_rotation(self, axis, angle):

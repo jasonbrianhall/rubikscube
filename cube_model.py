@@ -59,13 +59,14 @@ class RubiksCube:
                     
                     self.cubelets[key]['colors'] = colors
 
-    def start_row_rotation(self, direction):
-        """Start rotating the top row. Direction: 1 for clockwise, -1 for counterclockwise"""
+    def start_row_rotation(self, direction, rotation_row=1):
+        """Start rotating a row. Direction: 1 for clockwise, -1 for counterclockwise"""
         if not self.is_animating and not self.rotating_row:
             self.rotating_row = True
             self.row_rotation_angle = 0
             self.target_row_angle = 90 * direction
             self.row_rotation_direction = direction
+            self.rotating_row_y = rotation_row
             return True
         return False
 
@@ -411,14 +412,14 @@ class RubiksCube:
         self.is_solving = True
         self.current_step = -1
 
-    def start_column_rotation(self, direction):
+    def start_column_rotation(self, direction, rotation_column=1):
         """Start rotating the front column. Direction: -1 for up, 1 for down"""
         if not self.is_animating and not self.rotating_column:
             self.rotating_column = True
             self.column_rotation_angle = 0
             self.target_column_angle = 90 * direction
             self.column_rotation_direction = direction
-            self.rotating_col_x = 1  # Front column x-coordinate (changed from 0 to 1)
+            self.rotating_col_x = rotation_column  # Front column x-coordinate (changed from 0 to 1)
             return True
         return False
 
