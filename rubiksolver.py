@@ -353,6 +353,203 @@ class RubiksCube:
                 self.rotate_face_clockwise(face)
                 self.rotate_face_clockwise(face)
 
+    def _move_edge_to_bottom(self, edge):
+        """Move an edge piece to the bottom face in the correct position."""
+        source_face = edge["face"]
+        target_face = edge["adjacent_face"]
+        source_coords = edge["coords"]
+        target_coords = edge["adjacent_coords"]
+    
+        # Get the center colors to determine the correct position
+        edge_color = self.get_color(source_face, *source_coords)
+        adjacent_color = self.get_color(target_face, *target_coords)
+    
+        # First, get the piece to the top layer if it's not already there
+        if source_face != "top" and source_face != "bottom":
+            if source_coords[1] == 1:  # Middle layer edge
+                # Setup moves to get to top layer
+                if source_coords[0] == 0:  # Left side
+                    self.rotate_face_clockwise(source_face)
+                    self.rotate_face_clockwise("top")
+                    self.rotate_face_counterclockwise(source_face)
+                else:  # Right side
+                    self.rotate_face_counterclockwise(source_face)
+                    self.rotate_face_counterclockwise("top")
+                    self.rotate_face_clockwise(source_face)
+    
+        # Now the piece is in the top layer, rotate to correct position
+        target_position = self._find_matching_center(edge_color)
+        current_position = self._get_top_face_position(source_face)
+    
+        # Rotate top face to align with target position
+        rotations_needed = (target_position - current_position) % 4
+        for _ in range(rotations_needed):
+            self.rotate_face_clockwise("top")
+    
+        # Insert into bottom layer with appropriate algorithm
+        self._insert_edge_to_bottom(target_position)
+
+    def _orient_cross_edge(self, edge):
+        """Orient a cross edge that is in the bottom layer but incorrectly oriented."""
+        face = edge["adjacent_face"]
+    
+        # Bring edge to top layer
+        for _ in range(2):  # Double turn of both involved faces
+            self.rotate_face_clockwise(face)
+            self.rotate_face_clockwise("bottom")
+    
+        # Now the edge is in top layer, reinsert correctly
+        self._insert_edge_to_bottom(self._get_face_position(face))
+
+    def _find_matching_center(self, color):
+        """Find which face has a center matching the given color."""
+        faces = ["front", "right", "back", "left"]
+        for i, face in enumerate(faces):
+            if self.get_center_color(face) == color:
+                return i
+        return -1
+
+    def _get_top_face_position(self, face):
+        """Convert face name to position number (0=front, 1=right, 2=back, 3=left)."""
+        positions = {"front": 0, "right": 1, "back": 2, "left": 3}
+        return positions.get(face, -1)
+
+    def _get_face_position(self, face):
+        """Get the numerical position (0-3) for a given face name."""
+        positions = {"front": 0, "right": 1, "back": 2, "left": 3}
+        return positions.get(face, -1)
+
+    def _insert_edge_to_bottom(self, position):
+        """Insert an edge from top layer to bottom layer at given position."""
+        faces = ["front", "right", "back", "left"]
+        face = faces[position]
+    
+        # Double turn to insert
+        for _ in range(2):
+            self.rotate_face_clockwise(face)
+
+    def _find_f2l_pairs(self):
+        """Find all corner-edge pairs for F2L."""
+        bottom_color = self.get_center_color("bottom")
+        pairs = []
+        
+        # Find all corners that belong to F2L
+        for face in ["front", "right", "back", "left"]:
+            # Check bottom corners of each face
+            if (self.get_color(face, 2, 0) == bottom_color or
+                self.get_color("bottom", 0, 0) == bottom_color or
+                self.get_color(self._get_left_face(face), 2, 2) == bottom_color):
+                
+                pairs.append(self._get_f2l_pair_info(face, "bottom"))
+            
+            # Check top corners that might belong to F2L
+            if (self.get_color(face, 0, 0) == bottom_color or
+                self.get_color("top", 2, 0) == bottom_color or
+                self.get_color(self._get_left_face(face), 0, 2) == bottom_color):
+                
+                pairs.append(self._get_f2l_pair_info(face, "top"))
+        
+        return pairs
+    
+    def _get_f2l_pair_info(self, face, layer):
+        """Get information about an F2L pair given a face and layer."""
+        info = {
+            "corner_face": face,
+            "corner_layer": layer,
+            "corner_colors": self._get_corner_colors(face, layer),
+            "edge_colors": self._find_matching_edge(face, layer)
+        }
+        return info
+    
+    def _get_corner_colors(self, face, layer):
+        """Get the colors of a corner piece."""
+        colors = {}
+        y = 0 if layer == "top" else 2
+        
+        colors[face] = self.get_color(face, y, 0)
+        colors[self._get_left_face(face)] = self.get_color(self._get_left_face(face), y, 2)
+        colors[layer] = self.get_color(layer, 2 if layer == "top" else 0, 0)
+        
+        return colors
+    
+    def _find_matching_edge(self, face, layer):
+        """Find the matching edge piece for an F2L pair."""
+        corner_colors = set(self._get_corner_colors(face, layer).values())
+        corner_colors.remove(self.get_center_color("bottom"))  # Remove white/yellow
+        
+        # Check all edges
+        for check_face in ["front", "right", "back", "left"]:
+            for y in [0, 2]:  # Check top and bottom edges
+                edge_colors = self._get_edge_colors(check_face, y)
+                if set(edge_colors.values()) == corner_colors:
+                    return edge_colors
+        
+        return None
+    
+    def _get_edge_colors(self, face, y):
+        """Get the colors of an edge piece."""
+        colors = {}
+        colors[face] = self.get_color(face, y, 1)
+        if y == 0:
+            colors["top"] = self.get_color("top", 2, 1)
+        else:
+            colors["bottom"] = self.get_color("bottom", 0, 1)
+        return colors
+    
+    def _get_left_face(self, face):
+        """Get the face to the left of the given face."""
+        faces = ["front", "right", "back", "left"]
+        idx = faces.index(face)
+        return faces[(idx - 1) % 4]
+    
+    def _get_right_face(self, face):
+        """Get the face to the right of the given face."""
+        faces = ["front", "right", "back", "left"]
+        idx = faces.index(face)
+        return faces[(idx + 1) % 4]
+    
+    def _solve_f2l_pair(self, pair_info):
+        """Solve a single F2L pair."""
+        # Get corner position and orientation
+        corner_face = pair_info["corner_face"]
+        corner_layer = pair_info["corner_layer"]
+        
+        # Get edge position and relationship to corner
+        edge_colors = pair_info["edge_colors"]
+        
+        # If corner is in top layer, align and insert
+        if corner_layer == "top":
+            self._insert_f2l_pair_from_top(corner_face, edge_colors)
+        else:
+            # Corner in bottom layer - extract if needed and then solve
+            self._extract_and_insert_f2l_pair(corner_face, edge_colors)
+    
+    def _insert_f2l_pair_from_top(self, corner_face, edge_colors):
+        """Insert an F2L pair when the corner is in the top layer."""
+        # Basic insertion algorithm (simplified)
+        self.rotate_face_clockwise(corner_face)  # R
+        self.rotate_face_clockwise("top")        # U
+        self.rotate_face_counterclockwise(corner_face)  # R'
+    
+    def _extract_and_insert_f2l_pair(self, corner_face, edge_colors):
+        """Extract a corner from bottom layer and insert the pair."""
+        # Basic extraction algorithm (simplified)
+        self.rotate_face_clockwise("top")        # U
+        self.rotate_face_clockwise(corner_face)  # R
+        self.rotate_face_counterclockwise("top") # U'
+        self.rotate_face_counterclockwise(corner_face)  # R'
+        
+        # Now the corner is in top layer, insert normally
+        self._insert_f2l_pair_from_top(corner_face, edge_colors)
+
+    def _find_rotation_for_pattern(self, current_pattern, target_pattern):
+        for i in range(4):  # Try all possible rotations
+            # Check if patterns match after i rotations
+            rotated = current_pattern[i:] + current_pattern[:i]
+            if rotated == target_pattern:
+                return i
+        return 0  # Default to no rotation if no match found
+
 def solve_cube(cube_state):
     """
     Solves a Rubik's cube using the CFOP method (Fridrich method)
