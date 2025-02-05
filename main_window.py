@@ -301,6 +301,7 @@ class RubiksWindow(QMainWindow):
             
             print("\n=== Solution Ready ===")
             print("Use the arrow buttons to step through the solution.")
+            print(solution)
             
         except Exception as e:
             print(f"Error solving cube: {e}")
