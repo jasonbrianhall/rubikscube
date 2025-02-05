@@ -292,6 +292,9 @@ class RubiksWindow(QMainWindow):
             solvable, error=rubiksolver.validate_cube_state(cube_dict)
             print(solvable, error)
             solution = rubiksolver.solve_cube(cube_dict)
+            if solution == None:
+                 print("Solution not solved")
+                 return
             
             # Store solution and prepare for animation
             self.gl_widget.cube.set_solution_steps(solution)
