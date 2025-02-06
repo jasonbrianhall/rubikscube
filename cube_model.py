@@ -713,20 +713,30 @@ class RubiksCube:
             
             # Map the face colors based on rotation direction
             if self.rotating_face_type == 'front':
+                # For front face, when rotating clockwise:
+                # - Colors on right face move to down
+                # - Colors on up face move to right
+                # - Colors on left face move to up
+                # - Colors on down face move to left
                 old_to_new_faces = {
-                    'front': 'front',
-                    'right': 'down' if self.face_rotation_direction > 0 else 'up',
-                    'up': 'right' if self.face_rotation_direction > 0 else 'left',
-                    'left': 'up' if self.face_rotation_direction > 0 else 'down',
-                    'down': 'left' if self.face_rotation_direction > 0 else 'right'
-                }
-            elif self.rotating_face_type == 'back':
-                old_to_new_faces = {
-                    'back': 'back',
+                    'front': 'front',  # Front face colors stay on front
                     'right': 'up' if self.face_rotation_direction > 0 else 'down',
                     'up': 'left' if self.face_rotation_direction > 0 else 'right',
                     'left': 'down' if self.face_rotation_direction > 0 else 'up',
                     'down': 'right' if self.face_rotation_direction > 0 else 'left'
+                }
+            elif self.rotating_face_type == 'back':
+                # For back face, when rotating clockwise:
+                # - Colors on right face move to up
+                # - Colors on up face move to left
+                # - Colors on left face move to down
+                # - Colors on down face move to right
+                old_to_new_faces = {
+                    'back': 'back',  # Back face colors stay on back
+                    'right': 'down' if self.face_rotation_direction > 0 else 'up',
+                    'up': 'right' if self.face_rotation_direction > 0 else 'left',
+                    'left': 'up' if self.face_rotation_direction > 0 else 'down',
+                    'down': 'left' if self.face_rotation_direction > 0 else 'right'
                 }
             
             # Apply the color mapping
