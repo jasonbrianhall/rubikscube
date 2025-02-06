@@ -154,12 +154,19 @@ class RubiksWindow(QMainWindow):
                     if face_name in cubelet['colors']:
                         row, col = mapping[pos]
                         # Convert position tuple to string key
-                        pos_key = f"{row},{col}"
+                        pos_key = f"{col},{row}"
                         cube_dict[face_name][pos_key] = cubelet['colors'][face_name].name
     
-        print(json.dumps(cube_dict, indent=3))
+    
+        clean_dist={}
+        for x in cube_dist:
+            #print(cube_json.get(x))
+            sorted_dict = dict(sorted(cube_dist.get(x).items(), key=lambda y: (int(y[0].split(',')[0]), int(y[0].split(',')[1]))))
+            clean_dist[x]=sorted_dist
+    
+        #print(json.dumps(cube_dict, indent=3))
         #data=robiksolver.solve_cube(cube_dict)
-        return cube_dict
+        return clean_dist
 
     def save_cube_state(self):
         """Save the current cube state to a JSON file"""
