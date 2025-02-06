@@ -366,76 +366,111 @@ class RubiksCube:
         
         return state
 
-    def set_solution_steps(self, solution):
-        """Store solution steps and prepare for animation"""
-        self.solution_steps = []
-        for phase, moves in solution.items():
-            for move in moves:
-                face, direction = move.split('_')
-                self.solution_steps.append((face, direction))
-        self.current_step = -1
-        self.is_solving = False
-    
     def next_solution_step(self):
         """Execute next step in the solution"""
         if not self.is_solving or self.current_step >= len(self.solution_steps) - 1:
             print("No more steps or not solving")
             return False
-            
-        self.current_step += 1
-        face, direction = self.solution_steps[self.current_step]
-        print(f"Current step {self.current_step}: {face}_{direction}")
-    
-        direction_val = 1 if direction == "CW" else -1
-    
-        if face == "top":
-            print("Starting top row rotation")
-            return self.start_row_rotation(direction_val, rotation_row=1)
-        elif face == "bottom":
-            print("Starting bottom row rotation")
-            return self.start_row_rotation(direction_val, rotation_row=-1)
-        elif face == "left":
-            print("Starting left column rotation")
-            return self.start_column_rotation(direction_val, rotation_column=-1)
-        elif face == "right":
-            print("Starting right column rotation") 
-            return self.start_column_rotation(direction_val, rotation_column=1)
-        elif face == "front":
-            print("Starting front rotation")
-            return self.start_column_rotation(direction_val, rotation_column=0)
-        elif face == "back":
-            print("Starting back rotation")
-            return self.start_column_rotation(-direction_val, rotation_column=0)
         
-        return True
+        self.current_step += 1
+        move_type, pos, angle = self.solution_steps[self.current_step]
+        print(f"\nExecuting step {self.current_step}: {move_type}, position {pos}, angle {angle}")
+    
+        # Handle 180-degree rotations
+        if abs(angle) == 180:
+            print(f"Double rotation detected - executing first 90 degree move")
+            direction = angle / abs(angle)
+            # Execute first 90° and queue second 90°
+            self.solution_steps.insert(self.current_step + 1, (move_type, pos, 90 * direction))
+            if move_type == 'row':
+                return self.start_row_rotation(direction, rotation_row=pos)
+            elif move_type == 'column':
+                return self.start_column_rotation(direction, rotation_column=pos)
+    
+        if move_type == 'row':
+            print(f"Starting row rotation: row {pos}, angle {angle}")
+            return self.start_row_rotation(angle / abs(angle), rotation_row=pos)
+        elif move_type == 'column':
+            if isinstance(pos, list):
+                print(f"Front/back face rotation: converting to sequential rotations")
+                next_col = -1 if angle > 0 else 1
+                self.solution_steps.insert(self.current_step + 1, ('column', next_col, angle))
+                return self.start_column_rotation(angle / abs(angle), rotation_column=-next_col)
+            else:
+                print(f"Single column rotation: column {pos}, angle {angle}")
+                return self.start_column_rotation(angle / abs(angle), rotation_column=pos)
+    
+        print("Unknown move type")
+        return False    
+            
+    def execute_double_rotation(self, move_type, pos, angle):
+        """Handle 180-degree rotations by breaking into two 90-degree steps"""
+        if abs(angle) == 180:
+            direction = angle / abs(angle)
+            # Queue up both 90-degree rotations at once
+            if isinstance(pos, list):  # For front/back face moves
+                for x in pos:
+                    self.solution_steps.insert(self.current_step + 1, (move_type, x, 90 * direction))
+                    self.solution_steps.insert(self.current_step + 2, (move_type, x, 90 * direction))
+            else:
+                self.solution_steps.insert(self.current_step + 1, (move_type, pos, 90 * direction))
+                self.solution_steps.insert(self.current_step + 2, (move_type, pos, 90 * direction))
+            return True
+        return False
+
+    def set_solution_steps(self, solution_string):
+        """Convert Kociemba solution string to rotation instructions"""
+        self.solution_steps = []
+        moves = solution_string.split()
+    
+        face_names = {
+            'U': 'Top', 'D': 'Bottom', 'R': 'Right',
+        'L': 'Left', 'F': 'Front', 'B': 'Back'
+        }
+        direction_names = {
+            90: 'clockwise', -90: 'counter-clockwise', 180: 'twice'
+        }
+    
+        print("\nSolution steps:")
+        for move in moves:
+            face = move[0]
+            angle = 180 if len(move) > 1 and move[1] == '2' else \
+                   -90 if len(move) > 1 and move[1] == "'" else 90
+            
+            print(f"Rotate {face_names[face]} face {direction_names[angle]}")
+        
+            # Map face to rotation parameters
+            if face == 'U':
+                self.solution_steps.append(('row', 1, angle))
+            elif face == 'D':
+                self.solution_steps.append(('row', -1, angle))
+            elif face == 'R':
+                self.solution_steps.append(('column', 1, angle))
+            elif face == 'L':
+                self.solution_steps.append(('column', -1, angle))
+            elif face == 'F':
+                self.solution_steps.append(('column', [-1, 0, 1], angle))
+            elif face == 'B':
+                self.solution_steps.append(('column', [-1, 0, 1], -angle))
+    
+        self.current_step = -1
+        self.is_solving = False
         
     def previous_solution_step(self):
-        """Undo the last solution step"""
-        if not self.is_solving or self.current_step < 0:
+        """Undo last solution step"""
+        if self.current_step < 0:
             return False
             
-        face, direction = self.solution_steps[self.current_step]
-        # Reverse the direction
-        direction_val = -1 if direction == 'CW' else 1
+        move_type, index, angle = self.solution_steps[self.current_step]
+        # Reverse the angle for undoing
+        angle = -angle
         
-        if face == 'up':
-            self.start_row_rotation(direction_val, rotation_row=1)
-        elif face == 'down':
-            self.start_row_rotation(direction_val, rotation_row=-1)
-        elif face == 'left':
-            self.start_column_rotation(direction_val, rotation_column=-1)
-        elif face == 'right':
-            self.start_column_rotation(direction_val, rotation_column=1)
-        elif face == 'front':
-            # Front face rotation requires all three columns to rotate
-            self.start_column_rotation(direction_val, rotation_column=-1)
-            self.start_column_rotation(direction_val, rotation_column=0)
-            self.start_column_rotation(direction_val, rotation_column=1)
-        elif face == 'back':
-            # Back face rotation is opposite direction of front
-            self.start_column_rotation(-direction_val, rotation_column=-1)
-            self.start_column_rotation(-direction_val, rotation_column=0)
-            self.start_column_rotation(-direction_val, rotation_column=1)
+        if move_type == 'row':
+            self.start_row_rotation(angle / abs(angle), rotation_row=index)
+        elif move_type == 'column':
+            self.start_column_rotation(angle / abs(angle), rotation_column=index)
+        elif move_type == 'face':
+            self.start_face_rotation(angle / abs(angle), rotation_face=index)
         
         self.current_step -= 1
         return True
@@ -459,7 +494,16 @@ class RubiksCube:
         print("Animation blocked - already animating or rotating")
         return False
 
-
+    def start_face_rotation(self, direction, rotation_face=1):
+        """Start rotating a face. direction: 1 for clockwise, -1 for counterclockwise"""
+        if not self.is_animating:
+            if direction > 0:
+                self.rotate_face_clockwise(rotation_face)
+            else:
+                for _ in range(3):
+                    self.rotate_face_clockwise(rotation_face)
+            return True
+        return False
     
     def reset_solution(self):
         """Reset the solution animation to the beginning"""
