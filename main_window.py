@@ -2,6 +2,7 @@ import sys
 import json
 from PyQt5.QtWidgets import (QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, 
                             QWidget, QMenuBar, QMenu, QAction, QFileDialog, QApplication)
+from PyQt5.QtCore import QTimer
 from gl_widget import GLWidget
 from colors import CubeColor
 from cube_model import RubiksCube
@@ -12,6 +13,10 @@ class RubiksWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle('Rubiks Cube State Input')
         self.setGeometry(100, 100, 800, 600)
+        self.nav_buttons = {}
+        self.animation_timer = QTimer()
+        self.animation_timer.timeout.connect(self.check_animation_state)
+        self.animation_timer.start(16)  # ~60 FPS check rate
         
         # Create menu bar
         menubar = self.menuBar()
@@ -68,14 +73,15 @@ class RubiksWindow(QMainWindow):
         controls_layout.setContentsMargins(5, 0, 5, 0)
         
         # Navigation buttons
-        nav_buttons = {'←': 'left', '↑': 'up', '↓': 'down', '→': 'right'}
-        for text, direction in nav_buttons.items():
+        nav_buttons_config = {'←': 'left', '↑': 'up', '↓': 'down', '→': 'right'}
+        for text, direction in nav_buttons_config.items():
             btn = QPushButton(text)
             btn.setFixedSize(30, 30)
             btn.setStyleSheet('font-size: 14px;')
             btn.clicked.connect(lambda checked, d=direction: self.rotate(d))
             controls_layout.addWidget(btn)
-        
+            self.nav_buttons[direction] = btn        
+            
         controls_layout.addSpacing(20)  # Add space between navigation and colors
         
         # Color buttons
@@ -104,7 +110,26 @@ class RubiksWindow(QMainWindow):
         # Add GL widget
         self.gl_widget = GLWidget()
         layout.addWidget(self.gl_widget)
-        
+
+    def check_animation_state(self):
+        """Check if cube is currently animating and update button states"""
+        is_animating = (self.gl_widget.cube.is_animating or 
+                       self.gl_widget.cube.rotating_row or 
+                       self.gl_widget.cube.rotating_column or 
+                       self.gl_widget.cube.rotating_face)
+    
+        # Update navigation buttons
+        for btn in self.nav_buttons.values():
+            btn.setEnabled(not is_animating)
+    
+        # Update solution control buttons
+        if hasattr(self, 'next_step_btn'):
+            self.next_step_btn.setEnabled(not is_animating)
+        if hasattr(self, 'prev_step_btn'):
+            self.prev_step_btn.setEnabled(not is_animating)
+        if hasattr(self, 'reset_solution_btn'):
+            self.reset_solution_btn.setEnabled(not is_animating)        
+
 
     def print_cube_state(self):
         """Print the current state of all cubelet positions and their colors"""
