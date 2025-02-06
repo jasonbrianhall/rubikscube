@@ -1,13 +1,14 @@
-from twophase import solve
-
 def convert_to_kociemba(cube_json):
     """
-    Convert cube state JSON to Kociemba string format.
-    The order must be URFDLB (Up, Right, Front, Down, Left, Back)
+    Convert cube state JSON to Kociemba string format with standard color mapping:
+    - White: U (up)
+    - Red: R (right)
+    - Green: F (front)
+    - Yellow: D (down)
+    - Orange: L (left)
+    - Blue: B (back)
     """
-    # Define color mapping based on center pieces
-    # This assumes standard color scheme where:
-    # Up (White), Right (Red), Front (Green), Down (Yellow), Left (Orange), Back (Blue)
+    # Use standard color mapping
     color_map = {
         'WHITE': 'U',
         'RED': 'R',
@@ -17,79 +18,65 @@ def convert_to_kociemba(cube_json):
         'BLUE': 'B'
     }
     
-    # The order we need to process faces
-    face_order = ['up', 'right', 'front', 'down', 'left', 'back']
+    def get_face_colors(face_data):
+        """Get colors for a face in Kociemba order"""
+        result = []
+        # Read in Kociemba order (top-to-bottom, left-to-right)
+        for row in range(3):
+            for col in range(3):
+                pos = f"{col},{row}"
+                color = face_data[pos]
+                mapped_color = color_map[color]
+                result.append(mapped_color)
+        return ''.join(result)
     
-    # Function to get sorted positions for a face
-    def get_sorted_positions(face_data):
-        # Convert positions to array for easier sorting
-        positions = []
-        for pos, color in face_data.items():
-            col, row = map(int, pos.split(','))
-            positions.append((row, col, color))
-        
-        # Sort by row then column
-        positions.sort()
-        return [color for _, _, color in positions]
-    
-    # Build Kociemba string
+    # Build Kociemba string in URFDLB order
     kociemba_string = ''
-    for face in face_order:
-        face_colors = get_sorted_positions(cube_json[face])
-        for color in face_colors:
-            kociemba_string += color_map[color]
+    for face in ['up', 'right', 'front', 'down', 'left', 'back']:
+        face_string = get_face_colors(cube_json[face])
+        kociemba_string += face_string
     
     return kociemba_string
 
-# Test with provided JSON
-test_cube = {
-   "up": {
-      "0,0": "WHITE", "1,0": "ORANGE", "2,0": "BLUE",
-      "0,1": "RED", "1,1": "BLUE", "2,1": "BLUE",
-      "0,2": "BLUE", "1,2": "BLUE", "2,2": "RED"
-   },
-   "right": {
-      "0,0": "YELLOW", "1,0": "WHITE", "2,0": "WHITE",
-      "0,1": "GREEN", "1,1": "YELLOW", "2,1": "GREEN",
-      "0,2": "GREEN", "1,2": "BLUE", "2,2": "YELLOW"
-   },
-   "front": {
-      "0,0": "WHITE", "1,0": "ORANGE", "2,0": "GREEN",
-      "0,1": "ORANGE", "1,1": "RED", "2,1": "WHITE",
-      "0,2": "BLUE", "1,2": "YELLOW", "2,2": "WHITE"
-   },
-   "down": {
-      "0,0": "ORANGE", "1,0": "GREEN", "2,0": "ORANGE",
-      "0,1": "RED", "1,1": "GREEN", "2,1": "YELLOW",
-      "0,2": "ORANGE", "1,2": "WHITE", "2,2": "BLUE"
-   },
-   "left": {
-      "0,0": "RED", "1,0": "WHITE", "2,0": "ORANGE",
-      "0,1": "BLUE", "1,1": "WHITE", "2,1": "GREEN",
-      "0,2": "YELLOW", "1,2": "YELLOW", "2,2": "YELLOW"
-   },
-   "back": {
-      "0,0": "GREEN", "1,0": "YELLOW", "2,0": "RED",
-      "0,1": "RED", "1,1": "ORANGE", "2,1": "RED",
-      "0,2": "GREEN", "1,2": "ORANGE", "2,2": "RED"
-   }
-}
+def print_cube_state(cube_json):
+    """Print the cube state for verification"""
+    for face in ['up', 'right', 'front', 'down', 'left', 'back']:
+        print(f"\n{face.upper()} face:")
+        grid = [['' for _ in range(3)] for _ in range(3)]
+        for pos, color in cube_json[face].items():
+            col, row = map(int, pos.split(','))
+            grid[row][col] = color[0]
+        for row in grid:
+            print(' '.join(row))
 
-# Print the resulting string
-result = convert_to_kociemba(test_cube)
-print(f"Kociemba string: {result}")
-
-# Print each face to verify correct ordering
-for face in ['up', 'right', 'front', 'down', 'left', 'back']:
-    print(f"\n{face.upper()} face:")
-    face_data = test_cube[face]
-    rows = [[' ' for _ in range(3)] for _ in range(3)]
-    for pos, color in face_data.items():
-        col, row = map(int, pos.split(','))
-        rows[row][col] = color[0]
-    for row in rows:
-        print(' '.join(row))
-
-solution = solve(result)
-print(f"Solution: {solution}")
-
+if __name__ == "__main__":
+    import json
+    from twophase import solve
+    
+    # Load test1.json
+    with open('test1.json', 'r') as f:
+        cube_json = json.load(f)
+    
+    # Print original state
+    print("Original Cube State:")
+    print_cube_state(cube_json)
+    
+    # Convert to Kociemba string
+    kociemba_str = convert_to_kociemba(cube_json)
+    print("\nKociemba string:", kociemba_str)
+    
+    # Show the face-by-face interpretation
+    print("\nKociemba interpretation:")
+    faces = ['U', 'R', 'F', 'D', 'L', 'B']
+    for i, face in enumerate(faces):
+        print(f"\n{face} face:")
+        face_str = kociemba_str[i*9:(i+1)*9]
+        for j in range(0, 9, 3):
+            print(face_str[j:j+3])
+    
+    # Try to solve
+    try:
+        solution = solve(kociemba_str)
+        print("\nSolution found:", solution)
+    except ValueError as e:
+        print("\nError solving cube:", str(e))
