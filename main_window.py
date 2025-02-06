@@ -135,25 +135,16 @@ class RubiksWindow(QMainWindow):
             'top': {},
             'bottom': {}
         }
-
-        face_mappings = {
-            'front':  {(x, y, 1): (y+1, x+1) for x in range(-1, 2) for y in range(-1, 2)},
-            'back':   {(x, y, -1): (y+1, 2-x) for x in range(-1, 2) for y in range(-1, 2)},
-            'left':   {(-1, y, z): (y+1, z+1) for y in range(-1, 2) for z in range(-1, 2)},
-            'right':  {(1, y, z): (y+1, z+1) for y in range(-1, 2) for z in range(-1, 2)},
-            'top':    {(x, 1, z): (z+1, x+1) for x in range(-1, 2) for z in range(-1, 2)},
-            'bottom': {(x, -1, z): (z+1, x+1) for x in range(-1, 2) for z in range(-1, 2)}
-        }
     
         # Mapping from 3D coordinates to 2D face positions
-        '''face_mappings = {
+        face_mappings = {
             'front':  {(x, y, 1): (1-y, x+1) for x in range(-1, 2) for y in range(-1, 2)},
             'back':   {(x, y, -1): (1-y, 1-x) for x in range(-1, 2) for y in range(-1, 2)},
             'left':   {(-1, y, z): (1-y, 1-z) for y in range(-1, 2) for z in range(-1, 2)},
             'right':  {(1, y, z): (1-y, z+1) for y in range(-1, 2) for z in range(-1, 2)},
             'top':    {(x, 1, z): (1-z, x+1) for x in range(-1, 2) for z in range(-1, 2)},
             'bottom': {(x, -1, z): (z+1, x+1) for x in range(-1, 2) for z in range(-1, 2)}
-        }'''
+        }
     
         # Fill the dictionary
         for pos, cubelet in cube.cubelets.items():
