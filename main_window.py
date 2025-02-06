@@ -349,11 +349,3 @@ class RubiksWindow(QMainWindow):
         self.prev_step_btn.setEnabled(False)
         self.gl_widget.update()
         
-    def next_step(self):
-        """Execute next solution step"""
-        print("Window: Next step button pressed")
-        if self.gl_widget.cube.next_solution_step():
-            print("Window: Starting animation timer")
-            self.gl_widget.animation_timer.start()
-            self.gl_widget.update()        
-
