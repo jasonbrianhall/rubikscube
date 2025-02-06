@@ -280,10 +280,10 @@ class RubiksWindow(QMainWindow):
         solution_layout.setContentsMargins(5, 0, 5, 0)
         
         # Add solution control buttons
-        '''self.prev_step_btn = QPushButton('←')
+        self.prev_step_btn = QPushButton('←')
         self.prev_step_btn.setFixedSize(30, 30)
         self.prev_step_btn.clicked.connect(self.previous_step)
-        self.prev_step_btn.setEnabled(False)'''
+        self.prev_step_btn.setEnabled(False)
         
         self.next_step_btn = QPushButton('→')
         self.next_step_btn.setFixedSize(30, 30)

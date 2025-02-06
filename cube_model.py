@@ -24,6 +24,9 @@ class RubiksCube:
         self.face_rotation_angle = 0
         self.target_face_angle = 0
         self.rotating_face_type = 'front'
+        self.current_step = -1
+        self.is_solving = False
+        self.solution_steps = []
 
     def _initialize_cubes(self):
         """Initialize the 27 cubelets positions with interior faces"""
@@ -419,21 +422,21 @@ class RubiksCube:
         """Undo last solution step"""
         if self.current_step < 0:
             return False
-            
+        
         move_type, index, angle = self.solution_steps[self.current_step]
         # Reverse the angle for undoing
         angle = -angle
-        
+    
         if move_type == 'row':
             self.start_row_rotation(angle / abs(angle), rotation_row=index)
         elif move_type == 'column':
             self.start_column_rotation(angle / abs(angle), rotation_column=index)
         elif move_type == 'face':
-            self.start_face_rotation(angle / abs(angle), rotation_face=index)
-        
-        self.current_step -= 1
-        return True
+            self.start_face_rotation(angle / abs(angle), face=index)  # Changed from rotation_face to face
     
+        self.current_step -= 1
+        return True    
+
     def start_solution_animation(self):
         """Start the solution animation"""
         self.is_solving = True
