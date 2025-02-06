@@ -1,25 +1,50 @@
 from twophase import solve
 
+def get_center_colors(cube_json):
+    """
+    Extract center color of each face from the cube state.
+    Returns a dictionary mapping face positions to their center colors.
+    """
+    centers = {}
+    for face in ['up', 'right', 'front', 'down', 'left', 'back']:
+        # Center piece is always at position 1,1
+        center_color = cube_json[face]['1,1']
+        centers[face] = center_color
+    return centers
+
+def create_dynamic_color_mapping(centers):
+    """
+    Create a color-to-face mapping based on actual cube orientation.
+    Standard Kociemba orientation requires:
+    - White center on top (U)
+    - Green center on front (F)
+    """
+    # First, create mapping of actual positions to Kociemba faces
+    position_to_kociemba = {
+        'up': 'U',
+        'right': 'R',
+        'front': 'F',
+        'down': 'D',
+        'left': 'L',
+        'back': 'B'
+    }
+    
+    # Create dynamic color mapping based on center positions
+    color_map = {}
+    for position, color in centers.items():
+        kociemba_face = position_to_kociemba[position]
+        color_map[color] = kociemba_face
+    
+    return color_map
 
 def convert_to_kociemba(cube_json):
     """
-    Convert cube state JSON to Kociemba string format with standard color mapping:
-    - White: U (up)
-    - Red: R (right)
-    - Green: F (front)
-    - Yellow: D (down)
-    - Orange: L (left)
-    - Blue: B (back)
+    Convert cube state JSON to Kociemba string format with dynamic color mapping
+    based on actual cube orientation.
     """
-    # Use standard color mapping
-    color_map = {
-        'WHITE': 'U',
-        'RED': 'R',
-        'GREEN': 'F',
-        'YELLOW': 'D',
-        'ORANGE': 'L',
-        'BLUE': 'B'
-    }
+    # Get center colors and create dynamic mapping
+    centers = get_center_colors(cube_json)
+    color_map = create_dynamic_color_mapping(centers)
     
     def get_face_colors(face_data):
         """Get colors for a face in Kociemba order"""
@@ -29,8 +54,8 @@ def convert_to_kociemba(cube_json):
             for col in range(3):
                 pos = f"{col},{row}"
                 color = face_data[pos]
-                mapped_color = color_map[color]
-                result.append(mapped_color)
+                mapped_face = color_map[color]
+                result.append(mapped_face)
         return ''.join(result)
     
     # Build Kociemba string in URFDLB order
@@ -51,9 +76,22 @@ def print_cube_state(cube_json):
             grid[row][col] = color[0]
         for row in grid:
             print(' '.join(row))
+            
+def print_centers(cube_json):
+    """Print center colors for debugging orientation"""
+    centers = get_center_colors(cube_json)
+    print("\nCenter colors:")
+    for face, color in centers.items():
+        print(f"{face}: {color}")
 
 def solve_cube(cube_state):
+    """
+    Solve the cube and return the solution.
+    Prints center colors for verification before solving.
+    """
+    print_centers(cube_state)  # Print centers for debugging
     kociemba_str = convert_to_kociemba(cube_state)
+    print(f"\nKociemba string: {kociemba_str}")  # Print string for verification
     solution = solve(kociemba_str)
-    print(solution)
+    print(f"\nSolution: {solution}")
     return solution
