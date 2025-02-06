@@ -452,17 +452,6 @@ class RubiksCube:
             return True
         print("Animation blocked - already animating or rotating")
         return False
-
-    def start_face_rotation(self, direction, rotation_face=1):
-        """Start rotating a face. direction: 1 for clockwise, -1 for counterclockwise"""
-        if not self.is_animating and not self.rotating_face:
-            self.rotating_face = True
-            self.face_rotation_angle = 0
-            self.target_face_angle = 90 * direction
-            self.face_rotation_direction = direction
-            self.rotating_face_type = rotation_face
-            return True
-        return False
     
     def reset_solution(self):
         """Reset the solution animation to the beginning"""
@@ -691,66 +680,66 @@ class RubiksCube:
         return self.is_animating      
         
     def _complete_face_rotation(self):
-        print("In complete face rotation")
-        """Apply the rotation to the cube state after animation completes"""
-        # Get all cubelets in the rotating face
-        affected_cubelets = {pos: data for pos, data in self.cubelets.items() 
-                            if (self.rotating_face_type == 'front' and pos[2] == 1) or 
-                               (self.rotating_face_type == 'back' and pos[2] == -1)}
+        """Apply the rotation to the cube state after face animation completes"""
+        print(f"\nCompleting {self.rotating_face_type} face rotation")
+        print(f"Direction: {'clockwise' if self.face_rotation_direction > 0 else 'counter-clockwise'}")
+    
+        # Get affected cubelets
+        face_cubelets = self._get_face_cubelets(self.rotating_face_type)
     
         # Store old positions and their colors
         old_colors = {}
-        for pos in affected_cubelets:
-            old_colors[pos] = affected_cubelets[pos]['colors'].copy()
+        for pos in face_cubelets:
+            if pos in self.cubelets:
+                old_colors[pos] = self.cubelets[pos]['colors'].copy()
     
-        # Calculate new positions
+        # Calculate new positions based on 90-degree rotation
         new_positions = {}
-        for pos in affected_cubelets:
+        for pos in face_cubelets:
             x, y, z = pos
             if self.rotating_face_type == 'front':
-                if self.face_rotation_direction > 0:  # Clockwise
-                    new_positions[pos] = (y, -x, 1)
-                else:  # Counter-clockwise    
-                    new_positions[pos] = (-y, x, 1)
-            else:  # back face
-                if self.face_rotation_direction > 0:  # Clockwise
-                    new_positions[pos] = (-y, x, -1)
-                else:  # Counter-clockwise
-                    new_positions[pos] = (y, -x, -1)
+                new_positions[pos] = (-y, x, z) if self.face_rotation_direction > 0 else (y, -x, z)
+                print(f"Front face cubelet at {pos} moves to {new_positions[pos]}")
+            elif self.rotating_face_type == 'back':
+                new_positions[pos] = (y, -x, z) if self.face_rotation_direction > 0 else (-y, x, z)
+                print(f"Back face cubelet at {pos} moves to {new_positions[pos]}")
     
         # Update cube state with new positions
         for old_pos, new_pos in new_positions.items():
-            # Initialize new colors dict
+            # Map colors based on the rotation
             new_colors = {}
             for face_type in ['front', 'back', 'left', 'right', 'up', 'down']:
-                new_colors[face_type] = CubeColor.INTERIOR
-        
+                new_colors[face_type] = CubeColor.INTERIOR  # Default to interior
+            
+            # Map the face colors based on rotation direction
             if self.rotating_face_type == 'front':
                 old_to_new_faces = {
-                    'up': 'right' if self.face_rotation_direction > 0 else 'left',
-                    'right': 'down' if self.face_rotation_direction > 0 else 'up',
-                    'down': 'left' if self.face_rotation_direction > 0 else 'right',
-                    'left': 'up' if self.face_rotation_direction > 0 else 'down',
                     'front': 'front',
-                    'back': 'back'
+                    'right': 'down' if self.face_rotation_direction > 0 else 'up',
+                    'up': 'right' if self.face_rotation_direction > 0 else 'left',
+                    'left': 'up' if self.face_rotation_direction > 0 else 'down',
+                    'down': 'left' if self.face_rotation_direction > 0 else 'right'
                 }
-            else:  # back face
+            elif self.rotating_face_type == 'back':
                 old_to_new_faces = {
+                    'back': 'back',
+                    'right': 'up' if self.face_rotation_direction > 0 else 'down',
                     'up': 'left' if self.face_rotation_direction > 0 else 'right',
                     'left': 'down' if self.face_rotation_direction > 0 else 'up',
-                    'down': 'right' if self.face_rotation_direction > 0 else 'left',
-                    'right': 'up' if self.face_rotation_direction > 0 else 'down',
-                    'front': 'front',
-                    'back': 'back'
+                    'down': 'right' if self.face_rotation_direction > 0 else 'left'
                 }
-        
+            
+            # Apply the color mapping
             for old_face, new_face in old_to_new_faces.items():
                 if old_colors[old_pos][old_face] != CubeColor.INTERIOR:
                     new_colors[new_face] = old_colors[old_pos][old_face]
+                    print(f"Moving color from {old_face} face to {new_face} face for cubelet {old_pos} -> {new_pos}")
         
-            # Update cubelet
+            # Update cubelet with new position and colors
             self.cubelets[new_pos] = {
                 'pos': list(new_pos),
                 'faces': self.cubelets[old_pos]['faces'],
                 'colors': new_colors
             }
+    
+        return True
