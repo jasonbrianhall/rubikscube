@@ -132,8 +132,8 @@ class RubiksWindow(QMainWindow):
             'back': {},
             'left': {},
             'right': {},
-            'top': {},
-            'bottom': {}
+            'up': {},
+            'down': {}
         }
     
         # Mapping from 3D coordinates to 2D face positions
@@ -142,8 +142,8 @@ class RubiksWindow(QMainWindow):
             'back':   {(x, y, -1): (1-y, 1-x) for x in range(-1, 2) for y in range(-1, 2)},
             'left':   {(-1, y, z): (1-y, 1-z) for y in range(-1, 2) for z in range(-1, 2)},
             'right':  {(1, y, z): (1-y, z+1) for y in range(-1, 2) for z in range(-1, 2)},
-            'top':    {(x, 1, z): (1-z, x+1) for x in range(-1, 2) for z in range(-1, 2)},
-            'bottom': {(x, -1, z): (z+1, x+1) for x in range(-1, 2) for z in range(-1, 2)}
+            'up':    {(x, 1, z): (1-z, x+1) for x in range(-1, 2) for z in range(-1, 2)},
+            'down': {(x, -1, z): (z+1, x+1) for x in range(-1, 2) for z in range(-1, 2)}
         }
     
         # Fill the dictionary
@@ -220,9 +220,9 @@ class RubiksWindow(QMainWindow):
                             x, y, z = -1, 1-row, 1-col
                         elif face_name == 'right':
                             x, y, z = 1, 1-row, col-1
-                        elif face_name == 'top':
+                        elif face_name == 'up':
                             x, y, z = col-1, 1, 1-row
-                        elif face_name == 'bottom':
+                        elif face_name == 'down':
                             x, y, z = col-1, -1, row-1
                     
                         # Apply color to the cube

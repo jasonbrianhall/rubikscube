@@ -33,8 +33,8 @@ class RubiksCube:
                         ('back', [x, y, z]),
                         ('left', [x, y, z]),
                         ('right', [x, y, z]),
-                        ('top', [x, y, z]),
-                        ('bottom', [x, y, z])
+                        ('up', [x, y, z]),
+                        ('down', [x, y, z])
                     ])
                     
                     key = (x, y, z)
@@ -51,8 +51,8 @@ class RubiksCube:
                            (face_type == 'back' and z == -1) or \
                            (face_type == 'left' and x == -1) or \
                            (face_type == 'right' and x == 1) or \
-                           (face_type == 'top' and y == 1) or \
-                           (face_type == 'bottom' and y == -1):
+                           (face_type == 'up' and y == 1) or \
+                           (face_type == 'down' and y == -1):
                             colors[face_type] = CubeColor.UNASSIGNED
                         else:
                             colors[face_type] = CubeColor.INTERIOR
@@ -135,7 +135,7 @@ class RubiksCube:
         for old_pos, new_pos in new_positions.items():
             # Initialize new colors dict
             new_colors = {}
-            for face_type in ['front', 'back', 'left', 'right', 'top', 'bottom']:
+            for face_type in ['front', 'back', 'left', 'right', 'up', 'down']:
                 new_colors[face_type] = CubeColor.INTERIOR
             
             # Map colors to new positions
@@ -144,8 +144,8 @@ class RubiksCube:
                 'right': 'back' if self.row_rotation_direction > 0 else 'front',
                 'back': 'left' if self.row_rotation_direction > 0 else 'right',
                 'left': 'front' if self.row_rotation_direction > 0 else 'back',
-                'top': 'top',
-                'bottom': 'bottom'
+                'up': 'up',
+                'down': 'down'
             }
             
             for old_face, new_face in old_to_new_faces.items():
@@ -172,9 +172,9 @@ class RubiksCube:
             vertices = [[-v[2], v[1], v[0]] for v in vertices]
         elif face_type == 'right':
             vertices = [[v[2], v[1], -v[0]] for v in vertices]
-        elif face_type == 'top':
+        elif face_type == 'up':
             vertices = [[v[0], v[2], -v[1]] for v in vertices]
-        elif face_type == 'bottom':
+        elif face_type == 'down':
             vertices = [[v[0], -v[2], v[1]] for v in vertices]
         
         # Get screen coordinates for click detection
@@ -294,9 +294,9 @@ class RubiksCube:
             vertices = [[-v[2], v[1], v[0]] for v in vertices]
         elif face_type == 'right':
             vertices = [[v[2], v[1], -v[0]] for v in vertices]
-        elif face_type == 'top':
+        elif face_type == 'up':
             vertices = [[v[0], v[2], -v[1]] for v in vertices]
-        elif face_type == 'bottom':
+        elif face_type == 'down':
             vertices = [[v[0], -v[2], v[1]] for v in vertices]
     
         # Get screen coordinates for click detection
@@ -337,22 +337,22 @@ class RubiksCube:
     def get_cube_state(self):
         """Return the current state of the cube in a solver-friendly format"""
         state = {
-            'top': [],
+            'up': [],
             'front': [],
             'right': [],
             'back': [],
             'left': [],
-            'bottom': []
+            'down': []
         }
         
         # Define the order for each face
         face_positions = {
-            'top': [(x, 1, z) for z in [-1, 0, 1] for x in [-1, 0, 1]],
+            'up': [(x, 1, z) for z in [-1, 0, 1] for x in [-1, 0, 1]],
             'front': [(x, y, 1) for y in [1, 0, -1] for x in [-1, 0, 1]],
             'right': [(1, y, z) for y in [1, 0, -1] for z in [1, 0, -1]],
             'back': [(x, y, -1) for y in [1, 0, -1] for x in [1, 0, -1]],
             'left': [(-1, y, z) for y in [1, 0, -1] for z in [-1, 0, 1]],
-            'bottom': [(x, -1, z) for z in [1, 0, -1] for x in [-1, 0, 1]]
+            'down': [(x, -1, z) for z in [1, 0, -1] for x in [-1, 0, 1]]
         }
         
         # Fill in the state
@@ -418,9 +418,9 @@ class RubiksCube:
         # Reverse the direction
         direction_val = -1 if direction == 'CW' else 1
         
-        if face == 'top':
+        if face == 'up':
             self.start_row_rotation(direction_val, rotation_row=1)
-        elif face == 'bottom':
+        elif face == 'down':
             self.start_row_rotation(direction_val, rotation_row=-1)
         elif face == 'left':
             self.start_column_rotation(direction_val, rotation_column=-1)
@@ -474,8 +474,8 @@ class RubiksCube:
                (face_type == 'back' and z == -1) or \
                (face_type == 'left' and x == -1) or \
                (face_type == 'right' and x == 1) or \
-               (face_type == 'top' and y == 1) or \
-               (face_type == 'bottom' and y == -1)
+               (face_type == 'up' and y == 1) or \
+               (face_type == 'down' and y == -1)
     
     def _update_face_visibility(self, pos):
         """Update which faces should be visible at a given position"""
@@ -489,7 +489,7 @@ class RubiksCube:
     
     def rotate_face_clockwise(self, face):
         """Rotate a face of the cube clockwise"""
-        if face not in ['front', 'back', 'left', 'right', 'top', 'bottom']:
+        if face not in ['front', 'back', 'left', 'right', 'up', 'down']:
             print(f"Invalid face: {face}")
             return
     
@@ -547,7 +547,7 @@ class RubiksCube:
                 (1, -1, 0): (1, 0, -1),
                 (1, -1, 1): (1, -1, -1)
             },
-            'top': {
+            'up': {
                 (-1, 1, -1): (1, 1, -1),
                 (0, 1, -1): (1, 1, 0),
                 (1, 1, -1): (1, 1, 1),
@@ -557,7 +557,7 @@ class RubiksCube:
                 (0, 1, 1): (-1, 1, 0),
                 (1, 1, 1): (-1, 1, 1)
             },
-            'bottom': {
+            'down': {
                 (-1, -1, -1): (1, -1, -1),
                 (0, -1, -1): (1, -1, 0),
                 (1, -1, -1): (1, -1, 1),
@@ -572,36 +572,36 @@ class RubiksCube:
         # Color rotation mappings for each face type
         color_rotations = {
             'front': {
-                'top': 'right',
-                'right': 'bottom',
-                'bottom': 'left',
-                'left': 'top'
+                'up': 'right',
+                'right': 'down',
+                'down': 'left',
+                'left': 'up'
             },
             'back': {
-                'top': 'left',
-                'left': 'bottom',
-                'bottom': 'right',
-                'right': 'top'
+                'up': 'left',
+                'left': 'down',
+                'down': 'right',
+                'right': 'up'
             },
             'left': {
-                'top': 'front',
-                'front': 'bottom',
-                'bottom': 'back',
-                'back': 'top'
+                'up': 'front',
+                'front': 'down',
+                'down': 'back',
+                'back': 'up'
             },
             'right': {
-                'top': 'back',
-                'back': 'bottom',
-                'bottom': 'front',
-                'front': 'top'
+                'up': 'back',
+                'back': 'down',
+                'down': 'front',
+                'front': 'up'
             },
-            'top': {
+            'up': {
                 'front': 'right',
                 'right': 'back',
                 'back': 'left',
                 'left': 'front'
             },
-            'bottom': {
+            'down': {
                 'front': 'left',
                 'left': 'back',
                 'back': 'right',
@@ -658,11 +658,11 @@ class RubiksCube:
             for y in [-1, 0, 1]:
                 for z in [-1, 0, 1]:
                     affected.append((1, y, z))
-        elif face == 'top':
+        elif face == 'up':
             for x in [-1, 0, 1]:
                 for z in [-1, 0, 1]:
                     affected.append((x, 1, z))
-        elif face == 'bottom':
+        elif face == 'down':
             for x in [-1, 0, 1]:
                 for z in [-1, 0, 1]:
                     affected.append((x, -1, z))
@@ -694,29 +694,29 @@ class RubiksCube:
         for old_pos, new_pos in new_positions.items():
             new_colors = {}
             # Initialize all faces as interior
-            for face_type in ['front', 'back', 'left', 'right', 'top', 'bottom']:
+            for face_type in ['front', 'back', 'left', 'right', 'up', 'down']:
                 new_x, new_y, new_z = new_pos
                 if ((face_type == 'front' and new_z == 1) or 
                     (face_type == 'back' and new_z == -1) or
                     (face_type == 'left' and new_x == -1) or
                     (face_type == 'right' and new_x == 1) or
-                    (face_type == 'top' and new_y == 1) or
-                    (face_type == 'bottom' and new_y == -1)):
+                    (face_type == 'up' and new_y == 1) or
+                    (face_type == 'down' and new_y == -1)):
                     
                     # Map colors based on rotation direction
                     if face_type == 'left' or face_type == 'right':
                         new_colors[face_type] = exterior_faces[old_pos].get(face_type, CubeColor.UNASSIGNED)
                     else:
                         if self.column_rotation_direction > 0:  # Down
-                            if face_type == 'front': new_colors[face_type] = exterior_faces[old_pos].get('top', CubeColor.UNASSIGNED)
-                            elif face_type == 'top': new_colors[face_type] = exterior_faces[old_pos].get('back', CubeColor.UNASSIGNED)
-                            elif face_type == 'back': new_colors[face_type] = exterior_faces[old_pos].get('bottom', CubeColor.UNASSIGNED)
-                            elif face_type == 'bottom': new_colors[face_type] = exterior_faces[old_pos].get('front', CubeColor.UNASSIGNED)
+                            if face_type == 'front': new_colors[face_type] = exterior_faces[old_pos].get('up', CubeColor.UNASSIGNED)
+                            elif face_type == 'up': new_colors[face_type] = exterior_faces[old_pos].get('back', CubeColor.UNASSIGNED)
+                            elif face_type == 'back': new_colors[face_type] = exterior_faces[old_pos].get('down', CubeColor.UNASSIGNED)
+                            elif face_type == 'down': new_colors[face_type] = exterior_faces[old_pos].get('front', CubeColor.UNASSIGNED)
                         else:  # Up
-                            if face_type == 'front': new_colors[face_type] = exterior_faces[old_pos].get('bottom', CubeColor.UNASSIGNED)
-                            elif face_type == 'top': new_colors[face_type] = exterior_faces[old_pos].get('front', CubeColor.UNASSIGNED)
-                            elif face_type == 'back': new_colors[face_type] = exterior_faces[old_pos].get('top', CubeColor.UNASSIGNED)
-                            elif face_type == 'bottom': new_colors[face_type] = exterior_faces[old_pos].get('back', CubeColor.UNASSIGNED)
+                            if face_type == 'front': new_colors[face_type] = exterior_faces[old_pos].get('down', CubeColor.UNASSIGNED)
+                            elif face_type == 'up': new_colors[face_type] = exterior_faces[old_pos].get('front', CubeColor.UNASSIGNED)
+                            elif face_type == 'back': new_colors[face_type] = exterior_faces[old_pos].get('up', CubeColor.UNASSIGNED)
+                            elif face_type == 'down': new_colors[face_type] = exterior_faces[old_pos].get('back', CubeColor.UNASSIGNED)
                 else:
                     new_colors[face_type] = CubeColor.INTERIOR
     
