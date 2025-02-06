@@ -125,25 +125,27 @@ class RubiksWindow(QMainWindow):
                     print(f"  {face:6} face: {color.name:8}")
 
     def convert_cube_to_dict(self):
-        """Convert the cube state to a dictionary mapping coordinates to colors for each face"""
+        """Convert the cube state to a dictionary mapping coordinates to colors in Kociemba order"""
         cube = self.gl_widget.cube
+        # Initialize dict with faces in Kociemba order (URFDLB)
         cube_dict = {
-            'front': {},
-            'back': {},
-            'left': {},
-            'right': {},
             'up': {},
-            'down': {}
+            'right': {},
+            'front': {},
+            'down': {},
+            'left': {},
+            'back': {}
         }
     
         # Mapping from 3D coordinates to 2D face positions
+        # Modified to ensure correct Kociemba ordering within each face
         face_mappings = {
-            'front':  {(x, y, 1): (1-y, x+1) for x in range(-1, 2) for y in range(-1, 2)},
-            'back':   {(x, y, -1): (1-y, 1-x) for x in range(-1, 2) for y in range(-1, 2)},
-            'left':   {(-1, y, z): (1-y, 1-z) for y in range(-1, 2) for z in range(-1, 2)},
-            'right':  {(1, y, z): (1-y, z+1) for y in range(-1, 2) for z in range(-1, 2)},
-            'up':    {(x, 1, z): (1-z, x+1) for x in range(-1, 2) for z in range(-1, 2)},
-            'down': {(x, -1, z): (z+1, x+1) for x in range(-1, 2) for z in range(-1, 2)}
+            'up': {(x, 1, z): (z+1, x+1) for x in range(-1, 2) for z in range(-1, 2)},  # Read from top-left
+            'right': {(1, y, z): (-y+1, -z+1) for y in range(1, -2, -1) for z in range(-1, 2)},
+            'front': {(x, y, 1): (y+1, x+1) for x in range(-1, 2) for y in range(-1, 2)},  # Front face normal
+            'down': {(x, -1, z): (-z+1, x+1) for x in range(-1, 2) for z in range(1, -2, -1)},  # Bottom face from top
+            'left': {(-1, y, z): (y+1, z+1) for y in range(-1, 2) for z in range(-1, 2)},  # Left face towards front
+            'back': {(x, y, -1): (y+1, -x+1) for x in range(1, -2, -1) for y in range(-1, 2)}  # Back face from behind
         }
     
         # Fill the dictionary
@@ -153,21 +155,19 @@ class RubiksWindow(QMainWindow):
                 if pos in mapping:
                     if face_name in cubelet['colors']:
                         row, col = mapping[pos]
-                        # Convert position tuple to string key
+                        # Convert position to string key
                         pos_key = f"{col},{row}"
                         cube_dict[face_name][pos_key] = cubelet['colors'][face_name].name
     
+        # Clean and sort the dictionary
+        clean_dict = {}
+        for face in cube_dict:
+            sorted_dict = dict(sorted(cube_dict[face].items(), 
+                                    key=lambda y: (int(y[0].split(',')[1]), int(y[0].split(',')[0]))))
+            clean_dict[face] = sorted_dict
     
-        clean_dist={}
-        for x in cube_dict:
-            #print(cube_json.get(x))
-            sorted_dict = dict(sorted(cube_dict.get(x).items(), key=lambda y: (int(y[0].split(',')[0]), int(y[0].split(',')[1]))))
-            clean_dist[x]=sorted_dict
-    
-        #print(json.dumps(cube_dict, indent=3))
-        #data=robiksolver.solve_cube(cube_dict)
-        return clean_dist
-
+        return clean_dict
+        
     def save_cube_state(self):
         """Save the current cube state to a JSON file"""
     
