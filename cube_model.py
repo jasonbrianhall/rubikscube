@@ -510,113 +510,40 @@ class RubiksCube:
     
         # Define the rotation mappings for each face
         rotations = {
-            'front': {
-                (-1, 1, 1): (1, 1, 1),    # top-left → top-right
-                (0, 1, 1): (1, 0, 1),     # top-middle → middle-right
-                (1, 1, 1): (1, -1, 1),    # top-right → bottom-right
-                (-1, 0, 1): (0, 1, 1),    # middle-left → top-middle
-                (1, 0, 1): (0, -1, 1),    # middle-right → bottom-middle
-                (-1, -1, 1): (-1, 1, 1),  # bottom-left → top-left
-                (0, -1, 1): (-1, 0, 1),   # bottom-middle → middle-left
-                (1, -1, 1): (-1, -1, 1)   # bottom-right → bottom-left
-            },
-            'back': {
-                (-1, 1, -1): (1, 1, -1),
-                (0, 1, -1): (1, 0, -1),
-                (1, 1, -1): (1, -1, -1),
-                (-1, 0, -1): (0, 1, -1),
-                (1, 0, -1): (0, -1, -1),
-                (-1, -1, -1): (-1, 1, -1),
-                (0, -1, -1): (-1, 0, -1),
-                (1, -1, -1): (-1, -1, -1)
-            },
-            'left': {
-                (-1, 1, -1): (-1, 1, 1),
-                (-1, 1, 0): (-1, 0, 1),
-                (-1, 1, 1): (-1, -1, 1),
-                (-1, 0, -1): (-1, 1, 0),
-                (-1, 0, 1): (-1, -1, 0),
-                (-1, -1, -1): (-1, 1, -1),
-                (-1, -1, 0): (-1, 0, -1),
-                (-1, -1, 1): (-1, -1, -1)
-            },
-            'right': {
-                (1, 1, -1): (1, 1, 1),
-                (1, 1, 0): (1, 0, 1),
-                (1, 1, 1): (1, -1, 1),
-                (1, 0, -1): (1, 1, 0),
-                (1, 0, 1): (1, -1, 0),
-                (1, -1, -1): (1, 1, -1),
-                (1, -1, 0): (1, 0, -1),
-                (1, -1, 1): (1, -1, -1)
-            },
-            'up': {
-                (-1, 1, -1): (1, 1, -1),
-                (0, 1, -1): (1, 1, 0),
-                (1, 1, -1): (1, 1, 1),
-                (-1, 1, 0): (0, 1, -1),
-                (1, 1, 0): (0, 1, 1),
-                (-1, 1, 1): (-1, 1, -1),
-                (0, 1, 1): (-1, 1, 0),
-                (1, 1, 1): (-1, 1, 1)
-            },
-            'down': {
-                (-1, -1, -1): (1, -1, -1),
-                (0, -1, -1): (1, -1, 0),
-                (1, -1, -1): (1, -1, 1),
-                (-1, -1, 0): (0, -1, -1),
-                (1, -1, 0): (0, -1, 1),
-                (-1, -1, 1): (-1, -1, -1),
-                (0, -1, 1): (-1, -1, 0),
-                (1, -1, 1): (-1, -1, 1)
-            }
+            'front': {(-1, 1, 1): (1, 1, 1), (0, 1, 1): (1, 0, 1), (1, 1, 1): (1, -1, 1), 
+                      (-1, 0, 1): (0, 1, 1), (1, 0, 1): (0, -1, 1), (-1, -1, 1): (-1, 1, 1), 
+                      (0, -1, 1): (-1, 0, 1), (1, -1, 1): (-1, -1, 1)},
+            'back': {(-1, 1, -1): (1, 1, -1), (0, 1, -1): (1, 0, -1), (1, 1, -1): (1, -1, -1),
+                     (-1, 0, -1): (0, 1, -1), (1, 0, -1): (0, -1, -1), (-1, -1, -1): (-1, 1, -1), 
+                     (0, -1, -1): (-1, 0, -1), (1, -1, -1): (-1, -1, -1)},
+            'left': {(-1, 1, -1): (-1, 1, 1), (-1, 1, 0): (-1, 0, 1), (-1, 1, 1): (-1, -1, 1),
+                     (-1, 0, -1): (-1, 1, 0), (-1, 0, 1): (-1, -1, 0), (-1, -1, -1): (-1, 1, -1), 
+                     (-1, -1, 0): (-1, 0, -1), (-1, -1, 1): (-1, -1, -1)},
+            'right': {(1, 1, -1): (1, 1, 1), (1, 1, 0): (1, 0, 1), (1, 1, 1): (1, -1, 1),
+                      (1, 0, -1): (1, 1, 0), (1, 0, 1): (1, -1, 0), (1, -1, -1): (1, 1, -1), 
+                      (1, -1, 0): (1, 0, -1), (1, -1, 1): (1, -1, -1)},
+            'up': {(-1, 1, -1): (1, 1, -1), (0, 1, -1): (1, 1, 0), (1, 1, -1): (1, 1, 1),
+                   (-1, 1, 0): (0, 1, -1), (1, 1, 0): (0, 1, 1), (-1, 1, 1): (-1, 1, -1), 
+                   (0, 1, 1): (-1, 1, 0), (1, 1, 1): (-1, 1, 1)},
+            'down': {(-1, -1, -1): (1, -1, -1), (0, -1, -1): (1, -1, 0), (1, -1, -1): (1, -1, 1),
+                     (-1, -1, 0): (0, -1, -1), (1, -1, 0): (0, -1, 1), (-1, -1, 1): (-1, -1, -1), 
+                     (0, -1, 1): (-1, -1, 0), (1, -1, 1): (-1, -1, 1)}
         }
     
         # Color rotation mappings for each face type
         color_rotations = {
-            'front': {
-                'up': 'right',
-                'right': 'down',
-                'down': 'left',
-                'left': 'up'
-            },
-            'back': {
-                'up': 'left',
-                'left': 'down',
-                'down': 'right',
-                'right': 'up'
-            },
-            'left': {
-                'up': 'front',
-                'front': 'down',
-                'down': 'back',
-                'back': 'up'
-            },
-            'right': {
-                'up': 'back',
-                'back': 'down',
-                'down': 'front',
-                'front': 'up'
-            },
-            'up': {
-                'front': 'right',
-                'right': 'back',
-                'back': 'left',
-                'left': 'front'
-            },
-            'down': {
-                'front': 'left',
-                'left': 'back',
-                'back': 'right',
-                'right': 'front'
-            }
+            'front': {'up': 'right', 'right': 'down', 'down': 'left', 'left': 'up'},
+            'back': {'up': 'left', 'left': 'down', 'down': 'right', 'right': 'up'},
+            'left': {'up': 'front', 'front': 'down', 'down': 'back', 'back': 'up'},
+            'right': {'up': 'back', 'back': 'down', 'down': 'front', 'front': 'up'},
+            'up': {'front': 'right', 'right': 'back', 'back': 'left', 'left': 'front'},
+            'down': {'front': 'left', 'left': 'back', 'back': 'right', 'right': 'front'}
         }
     
         # Apply the position rotations
         rotation_map = rotations[face]
         for old_pos, new_pos in rotation_map.items():
             if old_pos in old_state:
-                # Copy colors from old position to new position
                 new_colors = {}
                 old_colors = old_state[old_pos]['colors']
                 
@@ -624,22 +551,15 @@ class RubiksCube:
                 for face_type in old_colors:
                     new_colors[face_type] = CubeColor.INTERIOR
                 
-                # Then, copy only the exterior faces that should be visible
-                for face_type, color in old_colors.items():
-                    if color != CubeColor.INTERIOR and self._is_exterior_face(new_pos, face_type):
-                        new_colors[face_type] = color
-                
-                # Apply the color rotation for the face being rotated
-                rotated_colors = new_colors.copy()
+                # Apply color rotations correctly
                 for old_face, new_face in color_rotations[face].items():
-                    if old_face in new_colors and new_face in new_colors:
-                        if self._is_exterior_face(new_pos, new_face):
-                            rotated_colors[new_face] = new_colors[old_face]
+                    if old_face in old_colors and old_colors[old_face] != CubeColor.INTERIOR:
+                        new_colors[new_face] = old_colors[old_face]
                 
-                self.cubelets[new_pos]['colors'] = rotated_colors
-                
-                # Update visibility of all faces
+                self.cubelets[new_pos]['colors'] = new_colors
                 self._update_face_visibility(new_pos)
+    
+
                 
                 
     def _get_face_cubelets(self, face):
@@ -826,9 +746,49 @@ class RubiksCube:
         return self.is_animating      
         
     def _complete_face_rotation(self):
-        """Apply the rotation to the cube state after face animation completes"""
-        if self.face_rotation_direction > 0:  # Clockwise
-            self.rotate_face_clockwise(self.rotating_face_type)
-        else:  # Counter-clockwise
-            for _ in range(3):  # Three clockwise = one counter-clockwise
-                self.rotate_face_clockwise(self.rotating_face_type)      
+        """Apply the rotation to the cube state after animation completes"""
+        # Get all cubelets in the rotating face
+        face_cubelets = {pos: data for pos, data in self.cubelets.items() if pos[2] == self.rotating_face}
+    
+        # Store old positions and their colors
+        old_colors = {}
+        for pos, data in face_cubelets.items():
+            old_colors[pos] = data['colors'].copy()
+    
+        # Calculate new positions
+        new_positions = {}
+        for pos in face_cubelets:
+            x, y, z = pos
+            if self.face_rotation_direction > 0:  # Clockwise
+                new_positions[pos] = (y, -x, z)
+            else:  # Counter-clockwise
+                new_positions[pos] = (-y, x, z)
+    
+        # Update cube state with new positions
+        for old_pos, new_pos in new_positions.items():
+            # Initialize new colors dict
+            new_colors = {}
+            for face_type in ['front', 'back', 'left', 'right', 'up', 'down']:
+                new_colors[face_type] = CubeColor.INTERIOR
+        
+            # Map colors to new positions
+            old_to_new_faces = {
+                'front': 'left' if self.face_rotation_direction > 0 else 'right',
+                'left': 'back' if self.face_rotation_direction > 0 else 'front',
+                'back': 'right' if self.face_rotation_direction > 0 else 'left',
+                'right': 'front' if self.face_rotation_direction > 0 else 'back',
+                'up': 'up',    
+                'down': 'down'
+            }
+        
+            for old_face, new_face in old_to_new_faces.items():
+                if old_colors[old_pos][old_face] != CubeColor.INTERIOR:
+                    new_colors[new_face] = old_colors[old_pos][old_face]
+            
+            # Update cubelet with new position and colors
+            self.cubelets[new_pos] = {
+                'pos': list(new_pos),
+                'faces': self.cubelets[old_pos]['faces'],
+                'colors': new_colors
+            }
+
