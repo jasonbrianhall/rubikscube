@@ -455,12 +455,12 @@ class RubiksCube:
 
     def start_face_rotation(self, direction, rotation_face=1):
         """Start rotating a face. direction: 1 for clockwise, -1 for counterclockwise"""
-        if not self.is_animating:
-            if direction > 0:
-                self.rotate_face_clockwise(rotation_face)
-            else:
-                for _ in range(3):
-                    self.rotate_face_clockwise(rotation_face)
+        if not self.is_animating and not self.rotating_face:
+            self.rotating_face = True
+            self.face_rotation_angle = 0
+            self.target_face_angle = 90 * direction
+            self.face_rotation_direction = direction
+            self.rotating_face_type = rotation_face
             return True
         return False
     
@@ -491,74 +491,20 @@ class RubiksCube:
                 colors[face_type] = CubeColor.INTERIOR
     
     def rotate_face_clockwise(self, face):
-        """Rotate a face of the cube clockwise"""
+        """Initiate face rotation animation"""
+        print("In Rotate Face clockwise")
         if face not in ['front', 'back', 'left', 'right', 'up', 'down']:
             print(f"Invalid face: {face}")
             return
-    
-        # Get affected cubelets and their current colors
-        affected_cubelets = self._get_face_cubelets(face)
-        old_state = {}
         
-        # Store the entire state of affected cubelets
-        for pos in affected_cubelets:
-            if pos in self.cubelets:
-                old_state[pos] = {
-                    'colors': self.cubelets[pos]['colors'].copy(),
-                    'faces': self.cubelets[pos]['faces'].copy()
-                }
-    
-        # Define the rotation mappings for each face
-        rotations = {
-            'front': {(-1, 1, 1): (1, 1, 1), (0, 1, 1): (1, 0, 1), (1, 1, 1): (1, -1, 1), 
-                      (-1, 0, 1): (0, 1, 1), (1, 0, 1): (0, -1, 1), (-1, -1, 1): (-1, 1, 1), 
-                      (0, -1, 1): (-1, 0, 1), (1, -1, 1): (-1, -1, 1)},
-            'back': {(-1, 1, -1): (1, 1, -1), (0, 1, -1): (1, 0, -1), (1, 1, -1): (1, -1, -1),
-                     (-1, 0, -1): (0, 1, -1), (1, 0, -1): (0, -1, -1), (-1, -1, -1): (-1, 1, -1), 
-                     (0, -1, -1): (-1, 0, -1), (1, -1, -1): (-1, -1, -1)},
-            'left': {(-1, 1, -1): (-1, 1, 1), (-1, 1, 0): (-1, 0, 1), (-1, 1, 1): (-1, -1, 1),
-                     (-1, 0, -1): (-1, 1, 0), (-1, 0, 1): (-1, -1, 0), (-1, -1, -1): (-1, 1, -1), 
-                     (-1, -1, 0): (-1, 0, -1), (-1, -1, 1): (-1, -1, -1)},
-            'right': {(1, 1, -1): (1, 1, 1), (1, 1, 0): (1, 0, 1), (1, 1, 1): (1, -1, 1),
-                      (1, 0, -1): (1, 1, 0), (1, 0, 1): (1, -1, 0), (1, -1, -1): (1, 1, -1), 
-                      (1, -1, 0): (1, 0, -1), (1, -1, 1): (1, -1, -1)},
-            'up': {(-1, 1, -1): (1, 1, -1), (0, 1, -1): (1, 1, 0), (1, 1, -1): (1, 1, 1),
-                   (-1, 1, 0): (0, 1, -1), (1, 1, 0): (0, 1, 1), (-1, 1, 1): (-1, 1, -1), 
-                   (0, 1, 1): (-1, 1, 0), (1, 1, 1): (-1, 1, 1)},
-            'down': {(-1, -1, -1): (1, -1, -1), (0, -1, -1): (1, -1, 0), (1, -1, -1): (1, -1, 1),
-                     (-1, -1, 0): (0, -1, -1), (1, -1, 0): (0, -1, 1), (-1, -1, 1): (-1, -1, -1), 
-                     (0, -1, 1): (-1, -1, 0), (1, -1, 1): (-1, -1, 1)}
-        }
-    
-        # Color rotation mappings for each face type
-        color_rotations = {
-            'front': {'up': 'right', 'right': 'down', 'down': 'left', 'left': 'up'},
-            'back': {'up': 'left', 'left': 'down', 'down': 'right', 'right': 'up'},
-            'left': {'up': 'front', 'front': 'down', 'down': 'back', 'back': 'up'},
-            'right': {'up': 'back', 'back': 'down', 'down': 'front', 'front': 'up'},
-            'up': {'front': 'right', 'right': 'back', 'back': 'left', 'left': 'front'},
-            'down': {'front': 'left', 'left': 'back', 'back': 'right', 'right': 'front'}
-        }
-    
-        # Apply the position rotations
-        rotation_map = rotations[face]
-        for old_pos, new_pos in rotation_map.items():
-            if old_pos in old_state:
-                new_colors = {}
-                old_colors = old_state[old_pos]['colors']
-                
-                # First, set all faces to interior
-                for face_type in old_colors:
-                    new_colors[face_type] = CubeColor.INTERIOR
-                
-                # Apply color rotations correctly
-                for old_face, new_face in color_rotations[face].items():
-                    if old_face in old_colors and old_colors[old_face] != CubeColor.INTERIOR:
-                        new_colors[new_face] = old_colors[old_face]
-                
-                self.cubelets[new_pos]['colors'] = new_colors
-                self._update_face_visibility(new_pos)
-    
+        if not self.is_animating and not self.rotating_face:
+            self.rotating_face = True
+            self.face_rotation_angle = 0
+            self.target_face_angle = 90
+            self.face_rotation_direction = 1
+            self.rotating_face_type = face
+            return True
+        return False    
 
                 
                 
@@ -704,7 +650,6 @@ class RubiksCube:
         """Update animation state"""
         STEP_SIZE = 3
         still_animating = False
-    
         if self.rotating_row:
             diff = self.target_row_angle - self.row_rotation_angle
             if abs(diff) <= STEP_SIZE:
@@ -746,23 +691,32 @@ class RubiksCube:
         return self.is_animating      
         
     def _complete_face_rotation(self):
+        print("In complete face rotation")
         """Apply the rotation to the cube state after animation completes"""
         # Get all cubelets in the rotating face
-        face_cubelets = {pos: data for pos, data in self.cubelets.items() if pos[2] == self.rotating_face}
+        affected_cubelets = {pos: data for pos, data in self.cubelets.items() 
+                            if (self.rotating_face_type == 'front' and pos[2] == 1) or 
+                               (self.rotating_face_type == 'back' and pos[2] == -1)}
     
         # Store old positions and their colors
         old_colors = {}
-        for pos, data in face_cubelets.items():
-            old_colors[pos] = data['colors'].copy()
+        for pos in affected_cubelets:
+            old_colors[pos] = affected_cubelets[pos]['colors'].copy()
     
         # Calculate new positions
         new_positions = {}
-        for pos in face_cubelets:
+        for pos in affected_cubelets:
             x, y, z = pos
-            if self.face_rotation_direction > 0:  # Clockwise
-                new_positions[pos] = (y, -x, z)
-            else:  # Counter-clockwise
-                new_positions[pos] = (-y, x, z)
+            if self.rotating_face_type == 'front':
+                if self.face_rotation_direction > 0:  # Clockwise
+                    new_positions[pos] = (y, -x, 1)
+                else:  # Counter-clockwise    
+                    new_positions[pos] = (-y, x, 1)
+            else:  # back face
+                if self.face_rotation_direction > 0:  # Clockwise
+                    new_positions[pos] = (-y, x, -1)
+                else:  # Counter-clockwise
+                    new_positions[pos] = (y, -x, -1)
     
         # Update cube state with new positions
         for old_pos, new_pos in new_positions.items():
@@ -771,24 +725,32 @@ class RubiksCube:
             for face_type in ['front', 'back', 'left', 'right', 'up', 'down']:
                 new_colors[face_type] = CubeColor.INTERIOR
         
-            # Map colors to new positions
-            old_to_new_faces = {
-                'front': 'left' if self.face_rotation_direction > 0 else 'right',
-                'left': 'back' if self.face_rotation_direction > 0 else 'front',
-                'back': 'right' if self.face_rotation_direction > 0 else 'left',
-                'right': 'front' if self.face_rotation_direction > 0 else 'back',
-                'up': 'up',    
-                'down': 'down'
-            }
+            if self.rotating_face_type == 'front':
+                old_to_new_faces = {
+                    'up': 'right' if self.face_rotation_direction > 0 else 'left',
+                    'right': 'down' if self.face_rotation_direction > 0 else 'up',
+                    'down': 'left' if self.face_rotation_direction > 0 else 'right',
+                    'left': 'up' if self.face_rotation_direction > 0 else 'down',
+                    'front': 'front',
+                    'back': 'back'
+                }
+            else:  # back face
+                old_to_new_faces = {
+                    'up': 'left' if self.face_rotation_direction > 0 else 'right',
+                    'left': 'down' if self.face_rotation_direction > 0 else 'up',
+                    'down': 'right' if self.face_rotation_direction > 0 else 'left',
+                    'right': 'up' if self.face_rotation_direction > 0 else 'down',
+                    'front': 'front',
+                    'back': 'back'
+                }
         
             for old_face, new_face in old_to_new_faces.items():
                 if old_colors[old_pos][old_face] != CubeColor.INTERIOR:
                     new_colors[new_face] = old_colors[old_pos][old_face]
-            
-            # Update cubelet with new position and colors
+        
+            # Update cubelet
             self.cubelets[new_pos] = {
                 'pos': list(new_pos),
                 'faces': self.cubelets[old_pos]['faces'],
                 'colors': new_colors
             }
-
