@@ -327,12 +327,16 @@ class RubiksWindow(QMainWindow):
             print(f"Error solving cube: {e}")
         
     def previous_step(self):
-        """Undo last solution step"""
-        if self.gl_widget.cube.previous_solution_step():
-            self.next_step_btn.setEnabled(True)
-            self.gl_widget.update()
-        else:
-            self.prev_step_btn.setEnabled(False)
+        """Execute previous solution step"""
+        print("Window: Previous step button pressed")
+        if not self.gl_widget.cube.is_animating:
+            if self.gl_widget.cube.previous_solution_step():
+                print("Window: Starting animation timer")
+                self.gl_widget.animation_timer.start()
+                self.next_step_btn.setEnabled(True)
+                self.gl_widget.update()
+            else:
+                self.prev_step_btn.setEnabled(False)
     
     def reset_solution(self):
         """Reset the solution animation"""
