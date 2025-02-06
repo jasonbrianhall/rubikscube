@@ -407,7 +407,7 @@ class RubiksCube:
             elif face == 'R':
                 self.solution_steps.append(('column', 1, angle))
             elif face == 'L':
-                self.solution_steps.append(('column', -1, angle))
+                self.solution_steps.append(('column', -1, -angle))
             elif face == 'F':
                 self.solution_steps.append(('face', 'front', angle))
             elif face == 'B':
