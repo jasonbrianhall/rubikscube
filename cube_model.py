@@ -20,6 +20,10 @@ class RubiksCube:
         self.column_rotation_angle = 0
         self.target_column_angle = 0
         self.rotating_col_x = 0
+        self.rotating_face = False
+        self.face_rotation_angle = 0
+        self.target_face_angle = 0
+        self.rotating_face_type = 'front'
 
     def _initialize_cubes(self):
         """Initialize the 27 cubelets positions with interior faces"""
@@ -74,42 +78,6 @@ class RubiksCube:
         """Start a rotation animation"""
         self.target_rotation[axis] = self.rotation[axis] + angle
         self.is_animating = True
-        return self.is_animating
-
-    def update_animation(self):
-        """Update animation state for both cube view rotation and row/column rotation"""
-        STEP_SIZE = 3
-        still_animating = False
-    
-        if self.rotating_row:
-            diff = self.target_row_angle - self.row_rotation_angle
-            if abs(diff) <= STEP_SIZE:
-                self.row_rotation_angle = self.target_row_angle
-                self.rotating_row = False
-                self._complete_row_rotation()
-            else:
-                self.row_rotation_angle += STEP_SIZE if diff > 0 else -STEP_SIZE
-                still_animating = True
-        elif self.rotating_column:
-            diff = self.target_column_angle - self.column_rotation_angle
-            if abs(diff) <= STEP_SIZE:
-                self.column_rotation_angle = self.target_column_angle
-                self.rotating_column = False
-                self._complete_column_rotation()
-            else:
-                self.column_rotation_angle += STEP_SIZE if diff > 0 else -STEP_SIZE
-                still_animating = True
-        else:
-            for i in range(2):
-                if self.rotation[i] != self.target_rotation[i]:
-                    diff = self.target_rotation[i] - self.rotation[i]
-                    if abs(diff) <= STEP_SIZE:
-                        self.rotation[i] = self.target_rotation[i]
-                    else:
-                        self.rotation[i] += STEP_SIZE if diff > 0 else -STEP_SIZE
-                        still_animating = True
-    
-        self.is_animating = still_animating or self.rotating_row or self.rotating_column
         return self.is_animating
 
     def _complete_row_rotation(self):
@@ -367,47 +335,31 @@ class RubiksCube:
         return state
 
     def next_solution_step(self):
-        """Execute next step in the solution"""
         if not self.is_solving or self.current_step >= len(self.solution_steps) - 1:
             print("No more steps or not solving")
             return False
-        
+    
         self.current_step += 1
         move_type, pos, angle = self.solution_steps[self.current_step]
         print(f"\nExecuting step {self.current_step + 1}/{len(self.solution_steps)}: {move_type}, position {pos}, angle {angle}")
-    
-        # Extra debug for animation state
-        print(f"Animation state: is_animating={self.is_animating}, rotating_row={self.rotating_row}, rotating_column={self.rotating_column}")
-    
-        # Handle 180-degree rotations
+
         if abs(angle) == 180:
-            print(f"Double rotation detected - executing first 90 degree move")
             direction = angle / abs(angle)
             self.solution_steps.insert(self.current_step + 1, (move_type, pos, 90 * direction))
             if move_type == 'row':
                 return self.start_row_rotation(direction, rotation_row=pos)
             elif move_type == 'column':
-                if isinstance(pos, list):    
-                    next_col = -1 if angle > 0 else 1
-                    return self.start_column_rotation(direction, rotation_column=-next_col)
                 return self.start_column_rotation(direction, rotation_column=pos)
-    
+            elif move_type == 'face':
+                return self.start_face_rotation(direction, face=pos)
+
         if move_type == 'row':
-            print(f"Starting row rotation: row {pos}, angle {angle}")
             return self.start_row_rotation(angle / abs(angle), rotation_row=pos)
         elif move_type == 'column':
-            if isinstance(pos, list):
-                print(f"Front/back face rotation: converting to sequential rotations")
-                next_col = -1 if angle > 0 else 1
-                self.solution_steps.insert(self.current_step + 1, ('column', next_col, angle))
-                return self.start_column_rotation(angle / abs(angle), rotation_column=-next_col)
-            else:
-                print(f"Single column rotation: column {pos}, angle {angle}")
-                result = self.start_column_rotation(angle / abs(angle), rotation_column=pos)
-                if not result:
-                    print("Failed to start column rotation - animation in progress")
-                return result
-    
+            return self.start_column_rotation(angle / abs(angle), rotation_column=pos)
+        elif move_type == 'face':
+            return self.start_face_rotation(angle / abs(angle), face=pos)
+
         print("Unknown move type")
         return False
             
@@ -778,3 +730,98 @@ class RubiksCube:
                 'faces': self.cubelets[old_pos]['faces'],
                 'colors': new_colors
             }
+            
+    def start_face_rotation(self, direction, face='front'):
+        """Start rotating a face. direction: 1 for clockwise, -1 for counterclockwise"""
+        if not self.is_animating and not self.rotating_face:
+            self.rotating_face = True
+            self.face_rotation_angle = 0
+            self.target_face_angle = 90 * direction
+            self.face_rotation_direction = direction
+            self.rotating_face_type = face
+            return True
+        return False
+    
+    def draw(self):
+        self.face_coords = {}
+    
+        glRotatef(self.rotation[0], 1, 0, 0)
+        glRotatef(self.rotation[1], 0, 1, 0)
+    
+        for pos, cubelet in self.cubelets.items():
+            glPushMatrix()
+            x, y, z = pos
+    
+            if self.rotating_row and y == self.rotating_row_y:
+                glTranslatef(0, y, 0)
+                glRotatef(self.row_rotation_angle, 0, 1, 0)
+                glTranslatef(x, 0, z)
+            elif self.rotating_column and x == self.rotating_col_x:
+                glTranslatef(x, 0, 0)
+                glRotatef(self.column_rotation_angle, 1, 0, 0)
+                glTranslatef(0, y, z)
+            elif self.rotating_face:
+                if (self.rotating_face_type == 'front' and z == 1) or \
+                   (self.rotating_face_type == 'back' and z == -1):
+                    if self.rotating_face_type == 'front':
+                        glTranslatef(0, 0, 1)
+                        glRotatef(self.face_rotation_angle, 0, 0, 1)
+                        glTranslatef(x, y, 0)
+                    else:  # back
+                        glTranslatef(0, 0, -1)
+                        glRotatef(self.face_rotation_angle, 0, 0, -1)
+                        glTranslatef(x, y, 0)
+                else:
+                    glTranslatef(x, y, z)
+            else:
+                glTranslatef(x, y, z)
+    
+            for face_type, _ in cubelet['faces']:
+                self._draw_cubelet_face(x, y, z, face_type, cubelet['colors'][face_type])
+    
+            glPopMatrix()
+    
+    def update_animation(self):
+        """Update animation state"""
+        STEP_SIZE = 3
+        still_animating = False
+    
+        if self.rotating_row:
+            diff = self.target_row_angle - self.row_rotation_angle
+            if abs(diff) <= STEP_SIZE:
+                self.row_rotation_angle = self.target_row_angle
+                self.rotating_row = False
+                self._complete_row_rotation()
+            else:
+                self.row_rotation_angle += STEP_SIZE if diff > 0 else -STEP_SIZE
+                still_animating = True
+        elif self.rotating_column:
+            diff = self.target_column_angle - self.column_rotation_angle
+            if abs(diff) <= STEP_SIZE:
+                self.column_rotation_angle = self.target_column_angle
+                self.rotating_column = False
+                self._complete_column_rotation()
+            else:
+                self.column_rotation_angle += STEP_SIZE if diff > 0 else -STEP_SIZE
+                still_animating = True
+        elif self.rotating_face:
+            diff = self.target_face_angle - self.face_rotation_angle
+            if abs(diff) <= STEP_SIZE:
+                self.face_rotation_angle = self.target_face_angle
+                self.rotating_face = False
+                self._complete_face_rotation()
+            else:
+                self.face_rotation_angle += STEP_SIZE if diff > 0 else -STEP_SIZE
+                still_animating = True
+        else:
+            for i in range(2):
+                if self.rotation[i] != self.target_rotation[i]:
+                    diff = self.target_rotation[i] - self.rotation[i]
+                    if abs(diff) <= STEP_SIZE:
+                        self.rotation[i] = self.target_rotation[i]
+                    else:
+                        self.rotation[i] += STEP_SIZE if diff > 0 else -STEP_SIZE
+                        still_animating = True
+    
+        self.is_animating = still_animating or self.rotating_row or self.rotating_column or self.rotating_face
+        return self.is_animating            
