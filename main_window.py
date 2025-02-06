@@ -190,50 +190,36 @@ class RubiksWindow(QMainWindow):
             print(f"Saved cube state to {filename}")
 
     def load_cube_state(self):
+        filename, _ = QFileDialog.getOpenFileName(self, "Load Cube State", "", "JSON Files (*.json);;All Files (*)")
     
-        filename, _ = QFileDialog.getOpenFileName(
-            self,
-            "Load Cube State",
-            "",
-            "JSON Files (*.json);;All Files (*)"
-        )
-    
-        if filename:
-            try:
-                with open(filename, 'r') as f:
-                    state_dict = json.load(f)
-            
-                # Reset cube to initial state   
-                self.gl_widget.cube = RubiksCube()
-            
-                # Map the loaded colors to CubeColor enum values
-                for face_name, face_dict in state_dict.items():
-                    for pos_str, color_name in face_dict.items():
-                        row, col = map(int, pos_str.split(','))
-                    
-                        # Get 3D coordinates based on face and 2D position
-                        if face_name == 'front':
-                            x, y, z = col-1, 1-row, 1
-                        elif face_name == 'back':
-                            x, y, z = 1-col, 1-row, -1
-                        elif face_name == 'left':
-                            x, y, z = -1, 1-row, 1-col
-                        elif face_name == 'right':
-                            x, y, z = 1, 1-row, col-1
-                        elif face_name == 'up':
-                            x, y, z = col-1, 1, 1-row
-                        elif face_name == 'down':
-                            x, y, z = col-1, -1, row-1
-                    
-                        # Apply color to the cube
-                        self.gl_widget.cube.cubelets[(x, y, z)]['colors'][face_name] = CubeColor[color_name]
-            
-                # Update the display
-                self.gl_widget.update()
-                print(f"Loaded cube state from {filename}")
-            
-            except Exception as e:
-                print(f"Error loading cube state: {e}")
+        if not filename:
+            return
+        
+        try:
+            with open(filename, 'r') as f:
+                state_dict = json.load(f)
+        
+            self.gl_widget.cube = RubiksCube()
+        
+            face_mappings = {
+                'up': lambda x, z: (x-1, 1, z-1),
+                'right': lambda z, y: (1, -y+1, -z+1),
+                'front': lambda x, y: (x-1, -y+1, 1),
+                'down': lambda x, z: (x-1, -1, -z+1),
+                'left': lambda z, y: (-1, -y+1, z-1),
+                'back': lambda x, y: (-x+1, -y+1, -1)
+            }
+        
+            for face_name, face_dict in state_dict.items():
+                for pos_str, color_name in face_dict.items():
+                    x, y = map(int, pos_str.split(','))
+                    coords = face_mappings[face_name](x, y)
+                    self.gl_widget.cube.cubelets[coords]['colors'][face_name] = CubeColor[color_name]
+        
+            self.gl_widget.update()
+        
+        except Exception as e:
+            print(f"Error loading cube state: {e}")
 
 
     def save_state(self):
@@ -296,8 +282,6 @@ class RubiksWindow(QMainWindow):
         """Modified solve_cube method to handle solution animation"""
         try:
             cube_dict = self.convert_cube_to_dict()
-            solvable, error=rubiksolver.validate_cube_state(cube_dict)
-            print(solvable, error)
             solution = rubiksolver.solve_cube(cube_dict)
             if solution == None:
                  print("Solution not solved")
