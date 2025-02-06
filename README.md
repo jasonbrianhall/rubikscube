@@ -60,10 +60,17 @@ python main.py
   - T: Rotate back column up
   - G: Rotate back column down
 
+- **Face Rotations (To Do):**
+  - I: Rotate face up
+  - K: Rotate face down
+  - J: Rotate reverse face up
+  - L: Rotate reverse face down
+
+
 #### Mouse Controls:
 
 - Click on any face to apply the currently selected color
-- Click and drag to rotate the cube
+- Click and drag to rotate the cube (todo)
 
 ## Project Structure
 
