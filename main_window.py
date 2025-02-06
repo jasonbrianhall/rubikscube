@@ -144,7 +144,7 @@ class RubiksWindow(QMainWindow):
             'right': {(1, y, z): (-y+1, -z+1) for y in range(1, -2, -1) for z in range(-1, 2)},
             'front': {(x, y, 1): (-y+1, x+1) for y in range(1, -2, -1) for x in range(-1, 2)},
             'down': {(x, -1, z): (-z+1, x+1) for x in range(-1, 2) for z in range(1, -2, -1)},  # Bottom face from top
-            'left': {(-1, y, z): (y+1, z+1) for y in range(-1, 2) for z in range(-1, 2)},  # Left face towards front
+            'left': {(-1, y, z): (-y+1, z+1) for y in range(1, -2, -1) for z in range(1, -2, -1)},
             'back': {(x, y, -1): (y+1, -x+1) for x in range(1, -2, -1) for y in range(-1, 2)}  # Back face from behind
         }
     
