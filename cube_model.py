@@ -403,16 +403,15 @@ class RubiksCube:
             if face == 'U':
                 self.solution_steps.append(('row', 1, angle))
             elif face == 'D':
-                self.solution_steps.append(('row', -1, angle))
+                self.solution_steps.append(('row', -1, -angle))
             elif face == 'R':
                 self.solution_steps.append(('column', 1, angle))
             elif face == 'L':
                 self.solution_steps.append(('column', -1, angle))
             elif face == 'F':
-                self.solution_steps.append(('column', [-1, 0, 1], angle))
+                self.solution_steps.append(('face', 'front', angle))
             elif face == 'B':
-                self.solution_steps.append(('column', [-1, 0, 1], -angle))
-    
+                self.solution_steps.append(('face', 'back', angle))    
         self.current_step = -1
         self.is_solving = False
         
@@ -824,4 +823,12 @@ class RubiksCube:
                         still_animating = True
     
         self.is_animating = still_animating or self.rotating_row or self.rotating_column or self.rotating_face
-        return self.is_animating            
+        return self.is_animating      
+        
+    def _complete_face_rotation(self):
+        """Apply the rotation to the cube state after face animation completes"""
+        if self.face_rotation_direction > 0:  # Clockwise
+            self.rotate_face_clockwise(self.rotating_face_type)
+        else:  # Counter-clockwise
+            for _ in range(3):  # Three clockwise = one counter-clockwise
+                self.rotate_face_clockwise(self.rotating_face_type)      
