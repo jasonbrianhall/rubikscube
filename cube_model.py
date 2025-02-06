@@ -443,7 +443,7 @@ class RubiksCube:
         for move in moves:
             face = move[0]
             angle = 180 if len(move) > 1 and move[1] == '2' else \
-                   -90 if len(move) > 1 and move[1] == "'" else 90
+                   90 if len(move) > 1 and move[1] == "'" else -90
             
             print(f"Rotate {face_names[face]} face {direction_names[angle]}")
         
