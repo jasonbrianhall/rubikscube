@@ -159,10 +159,10 @@ class RubiksWindow(QMainWindow):
     
     
         clean_dist={}
-        for x in cube_dist:
+        for x in cube_dict:
             #print(cube_json.get(x))
-            sorted_dict = dict(sorted(cube_dist.get(x).items(), key=lambda y: (int(y[0].split(',')[0]), int(y[0].split(',')[1]))))
-            clean_dist[x]=sorted_dist
+            sorted_dict = dict(sorted(cube_dict.get(x).items(), key=lambda y: (int(y[0].split(',')[0]), int(y[0].split(',')[1]))))
+            clean_dist[x]=sorted_dict
     
         #print(json.dumps(cube_dict, indent=3))
         #data=robiksolver.solve_cube(cube_dict)
