@@ -73,14 +73,13 @@ class RubiksWindow(QMainWindow):
         controls_layout.setContentsMargins(5, 0, 5, 0)
         
         # Navigation buttons
-        nav_buttons_config = {'←': 'left', '↑': 'up', '↓': 'down', '→': 'right'}
-        for text, direction in nav_buttons_config.items():
+        nav_buttons = {'←': 'left', '↑': 'up', '↓': 'down', '→': 'right'}
+        for text, direction in nav_buttons.items():
             btn = QPushButton(text)
             btn.setFixedSize(30, 30)
             btn.setStyleSheet('font-size: 14px;')
             btn.clicked.connect(lambda checked, d=direction: self.rotate(d))
-            controls_layout.addWidget(btn)
-            self.nav_buttons[direction] = btn        
+            controls_layout.addWidget(btn)            
             
         controls_layout.addSpacing(20)  # Add space between navigation and colors
         
