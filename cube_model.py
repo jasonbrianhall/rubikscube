@@ -374,17 +374,22 @@ class RubiksCube:
         
         self.current_step += 1
         move_type, pos, angle = self.solution_steps[self.current_step]
-        print(f"\nExecuting step {self.current_step}: {move_type}, position {pos}, angle {angle}")
+        print(f"\nExecuting step {self.current_step + 1}/{len(self.solution_steps)}: {move_type}, position {pos}, angle {angle}")
+    
+        # Extra debug for animation state
+        print(f"Animation state: is_animating={self.is_animating}, rotating_row={self.rotating_row}, rotating_column={self.rotating_column}")
     
         # Handle 180-degree rotations
         if abs(angle) == 180:
             print(f"Double rotation detected - executing first 90 degree move")
             direction = angle / abs(angle)
-            # Execute first 90° and queue second 90°
             self.solution_steps.insert(self.current_step + 1, (move_type, pos, 90 * direction))
             if move_type == 'row':
                 return self.start_row_rotation(direction, rotation_row=pos)
             elif move_type == 'column':
+                if isinstance(pos, list):    
+                    next_col = -1 if angle > 0 else 1
+                    return self.start_column_rotation(direction, rotation_column=-next_col)
                 return self.start_column_rotation(direction, rotation_column=pos)
     
         if move_type == 'row':
@@ -398,10 +403,13 @@ class RubiksCube:
                 return self.start_column_rotation(angle / abs(angle), rotation_column=-next_col)
             else:
                 print(f"Single column rotation: column {pos}, angle {angle}")
-                return self.start_column_rotation(angle / abs(angle), rotation_column=pos)
+                result = self.start_column_rotation(angle / abs(angle), rotation_column=pos)
+                if not result:
+                    print("Failed to start column rotation - animation in progress")
+                return result
     
         print("Unknown move type")
-        return False    
+        return False
             
     def execute_double_rotation(self, move_type, pos, angle):
         """Handle 180-degree rotations by breaking into two 90-degree steps"""
