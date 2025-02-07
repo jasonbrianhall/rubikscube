@@ -350,27 +350,25 @@ class RubiksWindow(QMainWindow):
     
     def solve_cube(self):
         """Modified solve_cube method to handle solution animation"""
+
+        # Try to solve after loading
         try:
             cube_dict = self.convert_cube_to_dict()
             solution = rubiksolver.solve_cube(cube_dict)
-            if solution == None:
-                 print("Solution not solved")
-                 return
-            
-            # Store solution and prepare for animation
-            self.gl_widget.cube.set_solution_steps(solution)
-            self.gl_widget.cube.start_solution_animation()
-            
-            # Enable solution controls
-            self.next_step_btn.setEnabled(True)
-            self.reset_solution_btn.setEnabled(True)
-            
-            print("\n=== Solution Ready ===")
-            print("Use the arrow buttons to step through the solution.")
-            print(solution)
-            
-        except Exception as e:
-            print(f"Error solving cube: {e}")
+            if solution:
+                self.gl_widget.cube.set_solution_steps(solution)
+                self.gl_widget.cube.start_solution_animation()
+                self.next_step_btn.setEnabled(True)
+                self.prev_step_btn.setEnabled(True)
+                self.reset_solution_btn.setEnabled(True)
+            else:
+                self.next_step_btn.setEnabled(False)
+                self.prev_step_btn.setEnabled(False)
+                self.reset_solution_btn.setEnabled(False)
+        except Exception:
+            self.next_step_btn.setEnabled(False)
+            self.prev_step_btn.setEnabled(False)
+            self.reset_solution_btn.setEnabled(False)
         
     def previous_step(self):
         """Execute previous solution step"""
