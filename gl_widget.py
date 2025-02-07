@@ -3,6 +3,7 @@ from PyQt5.QtCore import Qt, QTimer, QPoint
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from cube_model import RubiksCube
+from colors import CubeColor
 
 class GLWidget(QOpenGLWidget):
     def __init__(self, parent=None):
@@ -17,6 +18,8 @@ class GLWidget(QOpenGLWidget):
         # Mouse tracking variables
         self.last_pos = QPoint()
         self.mouse_pressed = False
+        self.right_mouse_pressed = False
+
         self.zoom_level = -15
         self.setMouseTracking(True)
 
@@ -77,13 +80,18 @@ class GLWidget(QOpenGLWidget):
         self.update()
 
     def mousePressEvent(self, event):
+        x, y = event.x(), event.y()
         if event.button() == Qt.LeftButton:
-            x, y = event.x(), event.y()
             if not self.cube.handle_click(x, y):
                 self.mouse_pressed = True
                 self.last_pos = event.pos()
-        self.update()
+        if event.button() == Qt.RightButton:
+            if not self.cube.handle_click(x, y, is_right_click=True):
+                self.right_mouse_pressed = True
+                self.last_pos = event.pos()
 
+        self.update()
+        
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
             self.mouse_pressed = False

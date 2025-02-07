@@ -186,12 +186,12 @@ class RubiksCube:
     def set_selected_color(self, color: CubeColor):
         self.selected_color = color
 
-    def handle_click(self, click_x, click_y):
+    def handle_click(self, click_x, click_y, is_right_click=False):
         # Find the clicked face
         clicked_cubelet = None
         clicked_face_type = None
         closest_z = float('inf')
-        
+    
         for cubelet_pos, faces in self.face_coords.items():
             for face_type, coords in faces.items():
                 if self._point_in_polygon(click_x, click_y, coords):
@@ -201,13 +201,13 @@ class RubiksCube:
                         closest_z = avg_z
                         clicked_cubelet = cubelet_pos
                         clicked_face_type = face_type
-        
+    
         if clicked_cubelet and clicked_face_type:
             # Don't change the color if it's an interior face
             current_color = self.cubelets[clicked_cubelet]['colors'][clicked_face_type]
             if current_color != CubeColor.INTERIOR:
                 print(f"Clicked cubelet at position {clicked_cubelet}, face {clicked_face_type}")
-                self.cubelets[clicked_cubelet]['colors'][clicked_face_type] = self.selected_color
+                self.cubelets[clicked_cubelet]['colors'][clicked_face_type] = CubeColor.UNASSIGNED if is_right_click else self.selected_color
                 return True
         return False
         
