@@ -264,11 +264,9 @@ class RubiksWindow(QMainWindow):
             else:
                 self.next_step_btn.setEnabled(False)
                 self.prev_step_btn.setEnabled(False)
-                self.reset_solution_btn.setEnabled(False)
         except Exception:
             self.next_step_btn.setEnabled(False)
             self.prev_step_btn.setEnabled(False)
-            self.reset_solution_btn.setEnabled(False)
 
 
 
@@ -296,15 +294,12 @@ class RubiksWindow(QMainWindow):
                 self.gl_widget.cube.start_solution_animation()
                 self.next_step_btn.setEnabled(True)
                 self.prev_step_btn.setEnabled(True)
-                self.reset_solution_btn.setEnabled(True)
             else:
                 self.next_step_btn.setEnabled(False)
                 self.prev_step_btn.setEnabled(False)
-                self.reset_solution_btn.setEnabled(False)
         except Exception:
             self.next_step_btn.setEnabled(False)
             self.prev_step_btn.setEnabled(False)
-            self.reset_solution_btn.setEnabled(False)
 
     def rotate(self, direction):
         if not self.gl_widget.cube.is_animating:  # Only start new rotation if not already animating
@@ -339,7 +334,6 @@ class RubiksWindow(QMainWindow):
         self.reset_solution_btn = QPushButton('Reset')
         self.reset_solution_btn.setFixedSize(60, 30)
         self.reset_solution_btn.clicked.connect(self.clear_cube)
-        self.reset_solution_btn.setEnabled(False)
         
         solution_layout.addWidget(self.prev_step_btn)
         solution_layout.addWidget(self.next_step_btn)
@@ -360,15 +354,12 @@ class RubiksWindow(QMainWindow):
                 self.gl_widget.cube.start_solution_animation()
                 self.next_step_btn.setEnabled(True)
                 self.prev_step_btn.setEnabled(True)
-                self.reset_solution_btn.setEnabled(True)
             else:
                 self.next_step_btn.setEnabled(False)
                 self.prev_step_btn.setEnabled(False)
-                self.reset_solution_btn.setEnabled(False)
         except Exception:
             self.next_step_btn.setEnabled(False)
             self.prev_step_btn.setEnabled(False)
-            self.reset_solution_btn.setEnabled(False)
         
     def previous_step(self):
         """Execute previous solution step"""
