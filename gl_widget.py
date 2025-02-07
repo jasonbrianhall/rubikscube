@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QOpenGLWidget
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, QPoint
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from cube_model import RubiksCube
@@ -13,6 +13,10 @@ class GLWidget(QOpenGLWidget):
         self.animation_timer = QTimer()
         self.animation_timer.timeout.connect(self.update_animation)
         self.animation_timer.setInterval(16)
+        
+        # Mouse tracking variables
+        self.last_pos = QPoint()
+        self.mouse_pressed = False
 
     def next_step(self):
         """Execute next solution step"""
@@ -71,9 +75,36 @@ class GLWidget(QOpenGLWidget):
         self.update()
 
     def mousePressEvent(self, event):
-        x, y = event.x(), event.y()
-        if self.cube.handle_click(x, y):
+        if event.button() == Qt.LeftButton:
+            x, y = event.x(), event.y()
+            if not self.cube.handle_click(x, y):
+                self.mouse_pressed = True
+                self.last_pos = event.pos()
+        self.update()
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.mouse_pressed = False
+        self.update()
+
+    def mouseMoveEvent(self, event):
+        if self.mouse_pressed and not self.cube.is_animating:
+            dx = event.x() - self.last_pos.x()
+            dy = event.y() - self.last_pos.y()
+            
+            # Scale the rotation (adjust these values to change rotation sensitivity)
+            rotation_scale = 0.5
+            x_rotation = dy * rotation_scale
+            y_rotation = dx * rotation_scale
+            
+            # Update cube rotation
+            self.cube.rotation[0] += x_rotation
+            self.cube.rotation[1] += y_rotation
+            self.cube.target_rotation = self.cube.rotation.copy()
+            
+            self.last_pos = event.pos()
             self.update()
+
 
     def initializeGL(self):
         glEnable(GL_DEPTH_TEST)
