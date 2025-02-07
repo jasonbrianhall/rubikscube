@@ -1,7 +1,7 @@
 import sys
 import json
 from PyQt5.QtWidgets import (QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, 
-                            QWidget, QMenuBar, QMenu, QAction, QFileDialog, QApplication, QTextEdit)
+                            QWidget, QMenuBar, QMenu, QAction, QFileDialog, QApplication, QTextEdit, QLabel)
 from PyQt5.QtCore import QTimer
 from gl_widget import GLWidget
 from colors import CubeColor
@@ -252,24 +252,7 @@ class RubiksWindow(QMainWindow):
             print(f"Error loading cube state: {e}")
             return
 
-        # Try to solve after loading
-        try:
-            cube_dict = self.convert_cube_to_dict()
-            solution = rubiksolver.solve_cube(cube_dict)
-            if solution:
-                self.gl_widget.cube.set_solution_steps(solution)
-                self.gl_widget.cube.start_solution_animation()
-                self.next_step_btn.setEnabled(True)
-                self.prev_step_btn.setEnabled(True)
-                self.reset_solution_btn.setEnabled(True)
-            else:
-                self.next_step_btn.setEnabled(False)
-                self.prev_step_btn.setEnabled(False)
-        except Exception:
-            self.next_step_btn.setEnabled(False)
-            self.prev_step_btn.setEnabled(False)
-
-
+        self.solve_cube()
 
     def save_state(self):
         state = self.gl_widget.cube.get_cube_state()
@@ -289,18 +272,7 @@ class RubiksWindow(QMainWindow):
         self.gl_widget.cube.set_selected_color(color)
         try:
             cube_dict = self.convert_cube_to_dict()
-            solution = rubiksolver.solve_cube(cube_dict)
-            if solution:
-                self.gl_widget.cube.set_solution_steps(solution)
-                self.gl_widget.cube.start_solution_animation()
-                self.next_step_btn.setEnabled(True)
-                self.prev_step_btn.setEnabled(True)
-            else:
-                self.next_step_btn.setEnabled(False)
-                self.prev_step_btn.setEnabled(False)
-        except Exception:
-            self.next_step_btn.setEnabled(False)
-            self.prev_step_btn.setEnabled(False)
+            self.solve_cube()
 
     def rotate(self, direction):
         if not self.gl_widget.cube.is_animating:  # Only start new rotation if not already animating
@@ -326,27 +298,30 @@ class RubiksWindow(QMainWindow):
         self.prev_step_btn.setFixedSize(30, 30)
         self.prev_step_btn.clicked.connect(self.previous_step)
         self.prev_step_btn.setEnabled(False)
-        
+    
         self.next_step_btn = QPushButton('→')
         self.next_step_btn.setFixedSize(30, 30)
         self.next_step_btn.clicked.connect(self.next_step)
         self.next_step_btn.setEnabled(False)
-        
+    
         self.reset_solution_btn = QPushButton('Reset')
         self.reset_solution_btn.setFixedSize(60, 30)
         self.reset_solution_btn.clicked.connect(self.clear_cube)
-        
+    
+        # Add solution status label
+        self.solution_status = QLabel("No solution available")
+        self.solution_status.setStyleSheet("color: red;")
+    
         solution_layout.addWidget(self.prev_step_btn)
         solution_layout.addWidget(self.next_step_btn)
         solution_layout.addWidget(self.reset_solution_btn)
+        solution_layout.addWidget(self.solution_status)
         solution_layout.addStretch()
-        
+    
         return solution_controls
     
     def solve_cube(self):
         """Modified solve_cube method to handle solution animation"""
-
-        # Try to solve after loading
         try:
             cube_dict = self.convert_cube_to_dict()
             solution = rubiksolver.solve_cube(cube_dict)
@@ -355,12 +330,18 @@ class RubiksWindow(QMainWindow):
                 self.gl_widget.cube.start_solution_animation()
                 self.next_step_btn.setEnabled(True)
                 self.prev_step_btn.setEnabled(True)
+                self.solution_status.setText("Solution available")
+                self.solution_status.setStyleSheet("color: green;")
             else:
                 self.next_step_btn.setEnabled(False)
                 self.prev_step_btn.setEnabled(False)
+                self.solution_status.setText("No solution available")
+                self.solution_status.setStyleSheet("color: red;")
         except Exception:
             self.next_step_btn.setEnabled(False)
             self.prev_step_btn.setEnabled(False)
+            self.solution_status.setText("Invalid cube state")
+            self.solution_status.setStyleSheet("color: red;")
         
     def previous_step(self):
         """Execute previous solution step"""
