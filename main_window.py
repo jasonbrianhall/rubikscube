@@ -326,6 +326,13 @@ class RubiksWindow(QMainWindow):
     
     def solve_cube(self):
         """Modified solve_cube method to handle solution animation"""
+        
+        exists = os.path.exists("tables.json")
+        if not exists:
+            self.solution_status.setText("Tables.json does not exist; it will be generated.  Be patient.")
+            self.solution_status.setStyleSheet("color: red;")
+            QApplication.processEvents()
+
         try:
             cube_dict = self.convert_cube_to_dict()
             solution = rubiksolver.solve_cube(cube_dict)
