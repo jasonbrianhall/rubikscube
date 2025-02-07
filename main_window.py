@@ -253,8 +253,11 @@ class RubiksWindow(QMainWindow):
             print(f"{face_name}: {[c.name for c in colors]}")
     
     def clear_cube(self):
-        print("Clearing cube")
-        self.gl_widget.cube = RubiksCube()
+        print("Cube is being cleared")
+        self.gl_widget.cube = RubiksCube()  # Reset cube state
+        self.gl_widget.zoom_level = -15     # Reset zoom to default
+        self.gl_widget.cube.rotation = [30, 45, 0]  # Reset rotation to starting position
+        self.gl_widget.cube.target_rotation = [30, 45, 0]  # Reset target rotation
         self.gl_widget.update()
     
     def set_color(self, color: CubeColor):
@@ -292,7 +295,7 @@ class RubiksWindow(QMainWindow):
         
         self.reset_solution_btn = QPushButton('Reset')
         self.reset_solution_btn.setFixedSize(60, 30)
-        self.reset_solution_btn.clicked.connect(self.reset_solution)
+        self.reset_solution_btn.clicked.connect(self.clear_cube)
         self.reset_solution_btn.setEnabled(False)
         
         solution_layout.addWidget(self.prev_step_btn)
