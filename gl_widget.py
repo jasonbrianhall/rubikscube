@@ -4,6 +4,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from cube_model import RubiksCube
 from colors import CubeColor
+import time
 
 class GLWidget(QOpenGLWidget):
     def __init__(self, parent=None):
@@ -73,10 +74,12 @@ class GLWidget(QOpenGLWidget):
     def start_rotation(self, axis, angle):
         if self.cube.animate_rotation(axis, angle):
             self.animation_timer.start()
+            time.sleep(0.001)
 
     def update_animation(self):
         if not self.cube.update_animation():
             self.animation_timer.stop()
+        time.sleep(0.001)
         self.update()
 
     def mousePressEvent(self, event):
@@ -143,4 +146,4 @@ class GLWidget(QOpenGLWidget):
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
         self.cube.draw()
-        self.update()
+
