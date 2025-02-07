@@ -1,5 +1,6 @@
 from twophase import solve
 import threading
+import os
 
 def get_center_colors(cube_json):
     """
