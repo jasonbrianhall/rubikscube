@@ -206,7 +206,6 @@ class RubiksCube:
             # Don't change the color if it's an interior face
             current_color = self.cubelets[clicked_cubelet]['colors'][clicked_face_type]
             if current_color != CubeColor.INTERIOR:
-                print(f"Clicked cubelet at position {clicked_cubelet}, face {clicked_face_type}")
                 self.cubelets[clicked_cubelet]['colors'][clicked_face_type] = CubeColor.UNASSIGNED if is_right_click else self.selected_color
                 return True
         return False
@@ -484,7 +483,6 @@ class RubiksCube:
     
     def rotate_face_clockwise(self, face):
         """Initiate face rotation animation"""
-        print("In Rotate Face clockwise")
         if face not in ['front', 'back', 'left', 'right', 'up', 'down']:
             print(f"Invalid face: {face}")
             return
@@ -702,10 +700,8 @@ class RubiksCube:
             x, y, z = pos
             if self.rotating_face_type == 'front':
                 new_positions[pos] = (-y, x, z) if self.face_rotation_direction > 0 else (y, -x, z)
-                print(f"Front face cubelet at {pos} moves to {new_positions[pos]}")
             elif self.rotating_face_type == 'back':
                 new_positions[pos] = (y, -x, z) if self.face_rotation_direction > 0 else (-y, x, z)
-                print(f"Back face cubelet at {pos} moves to {new_positions[pos]}")
     
         # Update cube state with new positions
         for old_pos, new_pos in new_positions.items():

@@ -1,7 +1,7 @@
 import sys
 import json
 from PyQt5.QtWidgets import (QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, 
-                            QWidget, QMenuBar, QMenu, QAction, QFileDialog, QApplication)
+                            QWidget, QMenuBar, QMenu, QAction, QFileDialog, QApplication, QTextEdit)
 from PyQt5.QtCore import QTimer
 from gl_widget import GLWidget
 from colors import CubeColor
@@ -65,6 +65,10 @@ class RubiksWindow(QMainWindow):
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         
+        '''debug_window = QTextEdit()
+        debug_window.setReadOnly(True)
+        debug_window.setFixedWidth(10)'''
+        
         # Create top control bar
         controls = QWidget()
         controls.setMaximumHeight(40)
@@ -102,6 +106,7 @@ class RubiksWindow(QMainWindow):
         
         controls_layout.addStretch()  # Push everything to the left
         layout.addWidget(controls)
+        #layout.addWidget(debug_window)
         
         solution_controls = self.setup_solution_controls()
         layout.addWidget(solution_controls)
@@ -244,6 +249,27 @@ class RubiksWindow(QMainWindow):
         
         except Exception as e:
             print(f"Error loading cube state: {e}")
+            return
+
+        # Try to solve after loading
+        try:
+            cube_dict = self.convert_cube_to_dict()
+            solution = rubiksolver.solve_cube(cube_dict)
+            if solution:
+                self.gl_widget.cube.set_solution_steps(solution)
+                self.gl_widget.cube.start_solution_animation()
+                self.next_step_btn.setEnabled(True)
+                self.prev_step_btn.setEnabled(True)
+                self.reset_solution_btn.setEnabled(True)
+            else:
+                self.next_step_btn.setEnabled(False)
+                self.prev_step_btn.setEnabled(False)
+                self.reset_solution_btn.setEnabled(False)
+        except Exception:
+            self.next_step_btn.setEnabled(False)
+            self.prev_step_btn.setEnabled(False)
+            self.reset_solution_btn.setEnabled(False)
+
 
 
     def save_state(self):
@@ -262,7 +288,6 @@ class RubiksWindow(QMainWindow):
     
     def set_color(self, color: CubeColor):
         self.gl_widget.cube.set_selected_color(color)
-        # Try to solve after each color change
         try:
             cube_dict = self.convert_cube_to_dict()
             solution = rubiksolver.solve_cube(cube_dict)
@@ -270,9 +295,16 @@ class RubiksWindow(QMainWindow):
                 self.gl_widget.cube.set_solution_steps(solution)
                 self.gl_widget.cube.start_solution_animation()
                 self.next_step_btn.setEnabled(True)
+                self.prev_step_btn.setEnabled(True)
                 self.reset_solution_btn.setEnabled(True)
-        except Exception as e:
-            print(f"Not yet solvable: {e}")
+            else:
+                self.next_step_btn.setEnabled(False)
+                self.prev_step_btn.setEnabled(False)
+                self.reset_solution_btn.setEnabled(False)
+        except Exception:
+            self.next_step_btn.setEnabled(False)
+            self.prev_step_btn.setEnabled(False)
+            self.reset_solution_btn.setEnabled(False)
 
     def rotate(self, direction):
         if not self.gl_widget.cube.is_animating:  # Only start new rotation if not already animating
