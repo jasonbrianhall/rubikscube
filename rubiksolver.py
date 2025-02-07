@@ -85,13 +85,21 @@ def print_centers(cube_json):
         print(f"{face}: {color}")
 
 def solve_cube(cube_state):
+    print("Solve Cube")
     """
     Solve the cube and return the solution.
     Prints center colors for verification before solving.
     """
-    print_centers(cube_state)  # Print centers for debugging
+    #print_centers(cube_state)  # Print centers for debugging
     kociemba_str = convert_to_kociemba(cube_state)
-    print(f"\nKociemba string: {kociemba_str}")  # Print string for verification
-    solution = solve(kociemba_str)
-    print(f"\nSolution: {solution}")
+    print(f"\nKociemba string: {kociemba_str}\n")
+    try:
+         solution = solve(kociemba_str)
+    except:
+         print("No solution found")
+         return None
+    print(f"Solution: {solution}")
     return solution
+    
+    
+    
