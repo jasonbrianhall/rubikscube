@@ -17,6 +17,8 @@ class GLWidget(QOpenGLWidget):
         # Mouse tracking variables
         self.last_pos = QPoint()
         self.mouse_pressed = False
+        self.zoom_level = -15
+        self.setMouseTracking(True)
 
     def next_step(self):
         """Execute next solution step"""
@@ -110,15 +112,27 @@ class GLWidget(QOpenGLWidget):
         glEnable(GL_DEPTH_TEST)
         glClearColor(0.9, 0.9, 0.9, 1.0)
 
+    def wheelEvent(self, event):
+        zoom_speed = 0.5
+        delta = event.angleDelta().y() / 120.0
+        self.zoom_level += delta * zoom_speed
+        self.update()
+
     def resizeGL(self, w, h):
         glViewport(0, 0, w, h)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         gluPerspective(45, w/h, 0.1, 50.0)
-        glTranslatef(0.0, 0.0, -15)
+        glTranslatef(0.0, 0.0, self.zoom_level)
+        self.update()
 
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        gluPerspective(45, self.width()/self.height(), 0.1, 50.0)
+        glTranslatef(0.0, 0.0, self.zoom_level)
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
         self.cube.draw()
+        self.update()
