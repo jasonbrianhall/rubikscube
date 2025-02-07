@@ -8,6 +8,7 @@ from colors import CubeColor
 from cube_model import RubiksCube
 import rubiksolver
 import threading
+import os
 
 class RubiksWindow(QMainWindow):
     def __init__(self):
@@ -251,8 +252,10 @@ class RubiksWindow(QMainWindow):
         except Exception as e:
             print(f"Error loading cube state: {e}")
             return
-
-        self.solve_cube()
+        # Only tries to solve if it's been initialized
+        exists = os.path.exists("tables.json")
+        if exist:
+            self.solve_cube()
 
     def save_state(self):
         state = self.gl_widget.cube.get_cube_state()
@@ -270,7 +273,10 @@ class RubiksWindow(QMainWindow):
     
     def set_color(self, color: CubeColor):
         self.gl_widget.cube.set_selected_color(color)
-        self.solve_cube()
+        # Only tries to solve if it's been initialized
+        exists = os.path.exists("tables.json")
+        if exist:
+            self.solve_cube()
 
     def rotate(self, direction):
         if not self.gl_widget.cube.is_animating:  # Only start new rotation if not already animating
