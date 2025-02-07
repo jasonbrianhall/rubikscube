@@ -270,9 +270,7 @@ class RubiksWindow(QMainWindow):
     
     def set_color(self, color: CubeColor):
         self.gl_widget.cube.set_selected_color(color)
-        try:
-            cube_dict = self.convert_cube_to_dict()
-            self.solve_cube()
+        self.solve_cube()
 
     def rotate(self, direction):
         if not self.gl_widget.cube.is_animating:  # Only start new rotation if not already animating
