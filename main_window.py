@@ -7,6 +7,7 @@ from gl_widget import GLWidget
 from colors import CubeColor
 from cube_model import RubiksCube
 import rubiksolver
+import threading
 
 class RubiksWindow(QMainWindow):
     def __init__(self):

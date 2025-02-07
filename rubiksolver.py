@@ -1,4 +1,5 @@
 from twophase import solve
+import threading
 
 def get_center_colors(cube_json):
     """
@@ -84,22 +85,26 @@ def print_centers(cube_json):
     for face, color in centers.items():
         print(f"{face}: {color}")
 
+def solve_in_thread(kociemba_str, result):
+    try:
+        result[0] = solve(kociemba_str)
+    except Exception as e:
+        result[0] = None
+
 def solve_cube(cube_state):
-    print("Solve Cube")
-    """
-    Solve the cube and return the solution.
-    Prints center colors for verification before solving.
-    """
-    #print_centers(cube_state)  # Print centers for debugging
     kociemba_str = convert_to_kociemba(cube_state)
     print(f"\nKociemba string: {kociemba_str}\n")
-    try:
-         solution = solve(kociemba_str)
-    except:
-         print("No solution found")
-         return None
-    print(f"Solution: {solution}")
-    return solution
     
+    result = [None]
+    solver_thread = threading.Thread(target=solve_in_thread, args=(kociemba_str, result))
+    solver_thread.start()
+    solver_thread.join()
+    
+    solution = result[0]
+    if solution:
+        print(f"Solution: {solution}")
+    else:
+        print("No solution found")
+    return solution
     
     
