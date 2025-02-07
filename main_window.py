@@ -254,7 +254,7 @@ class RubiksWindow(QMainWindow):
             return
         # Only tries to solve if it's been initialized
         exists = os.path.exists("tables.json")
-        if exist:
+        if exists:
             self.solve_cube()
 
     def save_state(self):
@@ -275,7 +275,7 @@ class RubiksWindow(QMainWindow):
         self.gl_widget.cube.set_selected_color(color)
         # Only tries to solve if it's been initialized
         exists = os.path.exists("tables.json")
-        if exist:
+        if exists:
             self.solve_cube()
 
     def rotate(self, direction):

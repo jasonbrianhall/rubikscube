@@ -92,6 +92,10 @@ def solve_in_thread(kociemba_str, result):
         result[0] = None
 
 def solve_cube(cube_state):
+
+    exists = os.path.exists("tables.json")
+    if not exists:
+        print("Tables.json needs generated.  This could take up to a minute so please be patient.")
     kociemba_str = convert_to_kociemba(cube_state)
     print(f"\nKociemba string: {kociemba_str}\n")
     
