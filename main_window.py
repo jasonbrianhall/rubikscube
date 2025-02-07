@@ -262,6 +262,17 @@ class RubiksWindow(QMainWindow):
     
     def set_color(self, color: CubeColor):
         self.gl_widget.cube.set_selected_color(color)
+        # Try to solve after each color change
+        try:
+            cube_dict = self.convert_cube_to_dict()
+            solution = rubiksolver.solve_cube(cube_dict)
+            if solution:
+                self.gl_widget.cube.set_solution_steps(solution)
+                self.gl_widget.cube.start_solution_animation()
+                self.next_step_btn.setEnabled(True)
+                self.reset_solution_btn.setEnabled(True)
+        except Exception as e:
+            print(f"Not yet solvable: {e}")
 
     def rotate(self, direction):
         if not self.gl_widget.cube.is_animating:  # Only start new rotation if not already animating

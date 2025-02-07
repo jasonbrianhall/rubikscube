@@ -746,7 +746,6 @@ class RubiksCube:
             for old_face, new_face in old_to_new_faces.items():
                 if old_colors[old_pos][old_face] != CubeColor.INTERIOR:
                     new_colors[new_face] = old_colors[old_pos][old_face]
-                    print(f"Moving color from {old_face} face to {new_face} face for cubelet {old_pos} -> {new_pos}")
         
             # Update cubelet with new position and colors
             self.cubelets[new_pos] = {
