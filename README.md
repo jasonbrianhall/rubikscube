@@ -2,6 +2,8 @@
 
 A Python-based interactive Rubik's Cube simulator built with PyQt5 and OpenGL. This application provides a 3D visualization of a Rubik's cube that users can manipulate, color, and solve.
 
+![Rubik's Cube Simulator Screenshot](docs/images/screenshot.png)
+
 This project was created as a demonstration of 3D graphics programming with Python and OpenGL, combining interactive graphics with a classic puzzle game.
 
 ## Features
@@ -42,6 +44,15 @@ Run the application using:
 python main.py
 ```
 
+When launched, the application opens a window displaying a 3D Rubik's cube with the following interface elements:
+
+- A row of colored buttons at the top (Red, Yellow, Green, Blue, Orange, White) for selecting colors
+- Navigation arrows for rotating the cube view
+- A solution control panel with Previous/Next step buttons and a status indicator
+  - "Solution available" appears in green when a valid solution is found
+  - "No solution available" appears in red when the cube cannot be solved.  It will also sometimes display this if it's already solved.
+  - It will display a message about tables.json being created if it doesn't exist.
+
 ### Controls
 
 #### Keyboard Controls:
@@ -62,7 +73,7 @@ python main.py
   - T: Rotate back column up
   - G: Rotate back column down
 
-- **Face Rotations (To Do):**
+- **Face Rotations:**
   - I: Rotate face up
   - K: Rotate face down
   - J: Rotate reverse face up
@@ -84,6 +95,10 @@ python main.py
 - `colors.py`: Color definitions and enums
 
 ## Technical Details
+
+### Solve Logic
+
+The software converts a dictionary created by the OpenGL software into a python dictionary and that in turn gets converted to kociemba string which then is ran through a search pattern to solve the puzzle. When the program first runs, it will create a .rubikscube/tables.json in the users home directory (this creation usually takes about a minute) which then speeds up any future solve time.  Without this feature, solve times would average a minute or more each time.  If tables.json gets corrupted, it will have to be manually deleted and recreated.
 
 ### Cube Model
 
