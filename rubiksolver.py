@@ -2,6 +2,7 @@ from twophase import solve
 import threading
 import os
 from pathlib import Path
+import traceback
 
 def get_tables_path():
     """Get the path to the tables.json file in the user's home directory"""
@@ -98,6 +99,7 @@ def solve_in_thread(kociemba_str, result):
     try:
         result[0] = solve(kociemba_str)
     except Exception as e:
+        print(traceback.format_exc())
         result[0] = None
 
 def solve_cube(cube_state):
