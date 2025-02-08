@@ -9,10 +9,20 @@ from cube_model import RubiksCube
 import rubiksolver
 import threading
 import os
+from PyQt5.QtGui import QIcon, QPixmap
+import base64
+from app_icon import ICON_DATA
+
 
 class RubiksWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+
+        icon_data = base64.b64decode(ICON_DATA)
+        pixmap = QPixmap()
+        pixmap.loadFromData(icon_data)
+        self.setWindowIcon(QIcon(pixmap))
+
         self.setWindowTitle('Rubiks Cube State Input')
         self.setGeometry(100, 100, 800, 600)
         self.nav_buttons = {}
