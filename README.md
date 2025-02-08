@@ -95,6 +95,7 @@ When launched, the application opens a window displaying a 3D Rubik's cube with 
 - `colors.py`: Color definitions and enums
 - `rubiksolver.py`: Function to bridge the json representing the cube to a Kociemba string text representation.
 - `twophase`:  Directory containing the logic to actually solve the cube
+- `appicon.py`: Base64 encoded Icon used to make the game prettier in MS Windows instead of the generic icon
 
 ## Technical Details
 
