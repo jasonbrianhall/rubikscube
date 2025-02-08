@@ -12,7 +12,13 @@ import os
 from PyQt5.QtGui import QIcon, QPixmap
 import base64
 from app_icon import ICON_DATA
+from pathlib import Path
 
+def get_tables_path():
+    """Get the path to the tables.json file in the user's home directory"""
+    home = str(Path.home())
+    rubiksolver_dir = os.path.join(home, '.rubiksolver')
+    return os.path.join(rubiksolver_dir, 'tables.json')
 
 class RubiksWindow(QMainWindow):
     def __init__(self):
@@ -258,7 +264,7 @@ class RubiksWindow(QMainWindow):
             print(f"Error loading cube state: {e}")
             return
         # Only tries to solve if it's been initialized
-        exists = os.path.exists("tables.json")
+        exists = os.path.exists(get_tables_path())
         if exists:
             self.solve_cube()
 
@@ -279,7 +285,7 @@ class RubiksWindow(QMainWindow):
     def set_color(self, color: CubeColor):
         self.gl_widget.cube.set_selected_color(color)
         # Only tries to solve if it's been initialized
-        exists = os.path.exists("tables.json")
+        exists = os.path.exists(get_tables_path())
         if exists:
             self.solve_cube()
 
@@ -332,7 +338,7 @@ class RubiksWindow(QMainWindow):
     def solve_cube(self):
         """Modified solve_cube method to handle solution animation"""
         
-        exists = os.path.exists("tables.json")
+        exists = os.path.exists(get_tables_path())
         if not exists:
             self.solution_status.setText("Tables.json does not exist; it will be generated.  Be patient.")
             self.solution_status.setStyleSheet("color: red;")

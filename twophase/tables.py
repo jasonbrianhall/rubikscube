@@ -1,7 +1,18 @@
 import json
 import os
-
+from pathlib import Path
 from .cubes.cubiecube import MOVE_CUBE, CubieCube
+
+def get_tables_path():
+    """Get the path to the tables.json file in the user's home directory"""
+    home = str(Path.home())
+    rubiksolver_dir = os.path.join(home, '.rubiksolver')
+    
+    # Create .rubiksolver directory if it doesn't exist
+    if not os.path.exists(rubiksolver_dir):
+        os.makedirs(rubiksolver_dir)
+    
+    return os.path.join(rubiksolver_dir, 'tables.json')
 
 
 class PruningTable:
@@ -53,7 +64,8 @@ class Tables:
 
     @classmethod
     def load_tables(cls):
-        if os.path.isfile("tables.json"):
+        tables_path = get_tables_path()
+        if os.path.isfile(tables_path):
             with open("tables.json", "r") as f:
                 tables = json.load(f)
             cls.twist_move = tables["twist_move"]
@@ -105,7 +117,7 @@ class Tables:
                 "edge4_edge8_prune": cls.edge4_edge8_prune.table,
                 "edge4_corner_prune": cls.edge4_corner_prune.table,
             }
-            with open("tables.json", "w") as f:
+            with open(tables_path, "w") as f:
                 json.dump(tables, f)
 
         cls._tables_loaded = True

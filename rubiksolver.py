@@ -1,6 +1,14 @@
 from twophase import solve
 import threading
 import os
+from pathlib import Path
+
+def get_tables_path():
+    """Get the path to the tables.json file in the user's home directory"""
+    home = str(Path.home())
+    rubiksolver_dir = os.path.join(home, '.rubiksolver')
+    return os.path.join(rubiksolver_dir, 'tables.json')
+
 
 def get_center_colors(cube_json):
     """
@@ -94,7 +102,7 @@ def solve_in_thread(kociemba_str, result):
 
 def solve_cube(cube_state):
 
-    exists = os.path.exists("tables.json")
+    exists = os.path.exists(get_tables_path())
     if not exists:
         print("Tables.json needs generated.  This could take up to a minute so please be patient.")
     kociemba_str = convert_to_kociemba(cube_state)
