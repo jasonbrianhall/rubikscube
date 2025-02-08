@@ -66,7 +66,7 @@ class Tables:
     def load_tables(cls):
         tables_path = get_tables_path()
         if os.path.isfile(tables_path):
-            with open("tables.json", "r") as f:
+            with open(tables_path, "r") as f:
                 tables = json.load(f)
             cls.twist_move = tables["twist_move"]
             cls.flip_move = tables["flip_move"]
