@@ -67,10 +67,6 @@ class RubiksWindow(QMainWindow):
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         
-        '''debug_window = QTextEdit()
-        debug_window.setReadOnly(True)
-        debug_window.setFixedWidth(10)'''
-        
         # Create top control bar
         controls = QWidget()
         controls.setMaximumHeight(40)
@@ -108,7 +104,6 @@ class RubiksWindow(QMainWindow):
         
         controls_layout.addStretch()  # Push everything to the left
         layout.addWidget(controls)
-        #layout.addWidget(debug_window)
         
         solution_controls = self.setup_solution_controls()
         layout.addWidget(solution_controls)
