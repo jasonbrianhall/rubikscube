@@ -93,6 +93,8 @@ When launched, the application opens a window displaying a 3D Rubik's cube with 
 - `gl_widget.py`: OpenGL widget for 3D rendering
 - `cube_model.py`: Rubik's cube model and logic
 - `colors.py`: Color definitions and enums
+- `rubiksolver.py`: Function to bridge the json representing the cube to a Kociemba string text representation.
+- `twophase`:  Directory containing the logic to actually solve the cube
 
 ## Technical Details
 
