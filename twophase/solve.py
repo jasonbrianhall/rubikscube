@@ -25,7 +25,7 @@ class SolutionManager:
         status = self.verify()
         if status:
             error_message = {
-                -1: "each colour should appear exactly 9 times",
+                -1: "each color should appear exactly 9 times",
                 -2: "not all edges exist exactly once",
                 -3: "one edge should be flipped",
                 -4: "not all corners exist exactly once",

@@ -29,7 +29,7 @@ edge_facelet = (
     (Facelet.B4, Facelet.R6),
 )
 
-# Maps corner positions to colours
+# Maps corner positions to colors
 corner_color = (
     (Color.U, Color.R, Color.F),
     (Color.U, Color.F, Color.L),
@@ -41,7 +41,7 @@ corner_color = (
     (Color.D, Color.R, Color.B),
 )
 
-# Maps edge positions to colours
+# Maps edge positions to colors
 edge_color = (
     (Color.U, Color.R),
     (Color.U, Color.F),
