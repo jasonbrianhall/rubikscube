@@ -29,7 +29,7 @@ class RubiksWindow(QMainWindow):
         pixmap.loadFromData(icon_data)
         self.setWindowIcon(QIcon(pixmap))
 
-        self.setWindowTitle('Rubiks Cube State Input')
+        self.setWindowTitle('Rubiks Cube Solver')
         self.setGeometry(100, 100, 800, 600)
         self.nav_buttons = {}
         self.animation_timer = QTimer()
