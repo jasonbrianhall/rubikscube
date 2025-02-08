@@ -319,6 +319,11 @@ class RubiksWindow(QMainWindow):
         self.next_step_btn.clicked.connect(self.next_step)
         self.next_step_btn.setEnabled(False)
     
+        self.solve_solution_btn = QPushButton('Solve')
+        self.solve_solution_btn.setFixedSize(60, 30)
+        self.solve_solution_btn.clicked.connect(self.solve_cube)
+
+
         self.reset_solution_btn = QPushButton('Reset')
         self.reset_solution_btn.setFixedSize(60, 30)
         self.reset_solution_btn.clicked.connect(self.clear_cube)
@@ -329,6 +334,7 @@ class RubiksWindow(QMainWindow):
     
         solution_layout.addWidget(self.prev_step_btn)
         solution_layout.addWidget(self.next_step_btn)
+        solution_layout.addWidget(self.solve_solution_btn)
         solution_layout.addWidget(self.reset_solution_btn)
         solution_layout.addWidget(self.solution_status)
         solution_layout.addStretch()
