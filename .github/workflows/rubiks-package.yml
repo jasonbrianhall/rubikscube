@@ -1,0 +1,86 @@
+name: Build and Release Rubik's Cube Solver
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build-windows-installer:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+          pip install wheel setuptools
+
+      - name: Create Windows Executable
+        run: |
+          pyinstaller --onefile --noconsole --icon=icon.ico --name RubiksSolver main.py
+
+      - name: Install WiX Toolset
+        run: |
+          mkdir wix
+          cd wix
+          Invoke-WebRequest -Uri "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311-binaries.zip" -OutFile "wix311-binaries.zip"
+          Expand-Archive wix311-binaries.zip -DestinationPath .
+          echo "$pwd" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Create MSI Installer
+        run: |
+          echo '<?xml version="1.0" encoding="UTF-8"?>
+          <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+            <Product Id="*" Name="Rubiks Cube Solver" Language="1033" Version="1.0.0" Manufacturer="Jason Hall" UpgradeCode="12B5E891-7C23-48DA-9E35-F94721E8F5A2">
+              <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+              <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
+              <MediaTemplate EmbedCab="yes" />
+              <Directory Id="TARGETDIR" Name="SourceDir">
+                <Directory Id="ProgramFilesFolder">
+                  <Directory Id="INSTALLFOLDER" Name="Rubiks Cube Solver">
+                    <Component Id="MainExecutable" Guid="8F7B3A92-1D45-4E67-BC89-2A5D6F981C3D">
+                      <File Id="MainEXE" Name="RubiksSolver.exe" Source="dist/RubiksSolver.exe" KeyPath="yes"/>
+                      <File Id="README" Name="README.md" Source="README.md"/>
+                      <File Id="LICENSE" Name="LICENSE.md" Source="LICENSE.md"/>
+                    </Component>
+                  </Directory>
+                </Directory>
+                <Directory Id="ProgramMenuFolder">
+                  <Directory Id="ApplicationProgramsFolder" Name="Rubiks Cube Solver">
+                    <Component Id="ApplicationShortcuts" Guid="5D1F9E23-4A78-4B12-9C34-6789ABCD1234">
+                      <Shortcut Id="ApplicationStartMenu" Name="Rubiks Cube Solver" Target="[INSTALLFOLDER]RubiksSolver.exe" WorkingDirectory="INSTALLFOLDER" Icon="RubikIcon.exe"/>
+                      <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+                      <RegistryValue Root="HKCU" Key="Software\RubiksCubeSolver" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+                    </Component>
+                  </Directory>
+                </Directory>
+              </Directory>
+              <Feature Id="ProductFeature" Title="RubiksCubeSolver" Level="1">
+                <ComponentRef Id="MainExecutable" />
+                <ComponentRef Id="ApplicationShortcuts" />
+              </Feature>
+              <Icon Id="RubikIcon.exe" SourceFile="icon.ico"/>
+            </Product>
+          </Wix>' > installer.wxs
+
+          candle installer.wxs
+          light installer.wixobj -out RubiksCubeSolver.msi
+
+      - name: Create Release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: RubiksCubeSolver.msi
+          tag_name: v${{ github.run_number }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
