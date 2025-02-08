@@ -39,7 +39,7 @@ class RubiksWindow(QMainWindow):
         # Create menu bar
         menubar = self.menuBar()
         file_menu = menubar.addMenu('File')
-        view_menu = menubar.addMenu('View')  # Add new View menu
+        #view_menu = menubar.addMenu('View')  # Add new View menu
         
         solve_action = QAction('Solve', self)
         solve_action.setShortcut('Ctrl+R')
@@ -61,13 +61,13 @@ class RubiksWindow(QMainWindow):
         clear_action.triggered.connect(self.clear_cube)
         file_menu.addAction(clear_action)
 
-        debug_action = QAction('Debug Cube State', self)
+        '''debug_action = QAction('Debug Cube State', self)
         debug_action.triggered.connect(self.print_cube_state)
         view_menu.addAction(debug_action)
 
         debug_action = QAction('Test Dict Creation', self)
         debug_action.triggered.connect(self.convert_cube_to_dict)
-        view_menu.addAction(debug_action)
+        view_menu.addAction(debug_action)'''
 
         
         file_menu.addSeparator()
