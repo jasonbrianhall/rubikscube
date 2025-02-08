@@ -144,4 +144,5 @@ SOFTWARE.
 
 ## Acknowledgments
 
-This project was created as a demonstration of 3D graphics programming with Python and OpenGL, combining interactive graphics with a classic puzzle game.
+- Rubik's cube solving algorithm adapted from [cube-solver](https://github.com/tcbegley/cube-solver) by Tom Begley (Copyright (c) 2020 Tom Begley)
+- This project was created as a demonstration of 3D graphics programming with Python and OpenGL, combining interactive graphics with a classic puzzle game.
