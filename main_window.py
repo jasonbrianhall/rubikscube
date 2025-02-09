@@ -352,7 +352,11 @@ class RubiksWindow(QMainWindow):
 
         try:
             cube_dict = self.convert_cube_to_dict()
-            solution = rubiksolver.solve_cube(cube_dict)
+            try:
+                solution = rubiksolver.solve_cube(cube_dict)
+            except:
+                solution=False
+                pass
             if solution:
                 self.gl_widget.cube.set_solution_steps(solution)
                 self.gl_widget.cube.start_solution_animation()
