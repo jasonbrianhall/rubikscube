@@ -124,84 +124,84 @@ def solve_cube(cube_state):
 
 def troubleshoot_cube_string(cube_str):
     """
-    Analyzes a cube's state, counting colors and validating structure.
-    First counts all colors, then validates corners if counts are correct.
+    Analyzes a cube's state with human-friendly feedback about color counts.
     
     Args:
         cube_str (dict): The cube state dictionary
         
     Returns:
-        str: Color counts and validation results
+        str: User-friendly feedback about color distribution and validation results
     """
     try:
         # Initialize color counts
         color_counts = {}
         
-        # First pass - collect all unique colors and initialize counts
+        # Count all colors
         for face in cube_str.values():
             for color in face.values():
                 if color not in color_counts:
                     color_counts[color] = 0
-                    
-        # Second pass - count occurrences
-        for face in cube_str.values():
-            for color in face.values():
                 color_counts[color] += 1
         
-        # Build result string
-        result_parts = []
-        for color, count in sorted(color_counts.items()):
-            result_parts.append(f"{color.capitalize()}: {count}")
-        
-        color_status = " ".join(result_parts)
-        
-        # Check if we have exactly 9 of each main color and 0 unassigned
+        # Generate human-friendly feedback about color counts
+        issues = []
         expected_colors = {'WHITE', 'RED', 'GREEN', 'YELLOW', 'ORANGE', 'BLUE'}
-        if ('UNASSIGNED' not in color_counts and 
-            all(color in color_counts for color in expected_colors) and
-            all(color_counts[color] == 9 for color in expected_colors)):
+        
+        if 'UNASSIGNED' in color_counts:
+            issues.append(f"You still have {color_counts['UNASSIGNED']} unscanned stickers")
+        
+        for color in expected_colors:
+            if color not in color_counts:
+                issues.append(f"No {color.lower()} stickers found")
+            else:
+                diff = color_counts[color] - 9
+                if diff > 0:
+                    issues.append(f"Too many {color.lower()} stickers (found {color_counts[color]}, need 9)")
+                elif diff < 0:
+                    issues.append(f"Not enough {color.lower()} stickers (found {color_counts[color]}, need 9)")
+        
+        # If there are issues with counts, return them
+        if issues:
+            return " | ".join(issues)
+        
+        # If counts are good, convert to Kociemba and check corners
+        kociemba_str = convert_to_kociemba(cube_str)
+        
+        # Check if already solved
+        if kociemba_str == "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB":
+            return "Already solved"
             
-            # If counts are good, convert to Kociemba and check corners
-            kociemba_str = convert_to_kociemba(cube_str)
+        # Validate corners
+        corner_triplets = [
+            (kociemba_str[2], kociemba_str[9], kociemba_str[18]),    # UFR
+            (kociemba_str[0], kociemba_str[18], kociemba_str[36]),   # UFL
+            (kociemba_str[0], kociemba_str[45], kociemba_str[36]),   # UBL
+            (kociemba_str[2], kociemba_str[47], kociemba_str[9]),    # UBR
+            (kociemba_str[29], kociemba_str[24], kociemba_str[17]),  # DFR
+            (kociemba_str[27], kociemba_str[24], kociemba_str[44]),  # DFL
+            (kociemba_str[27], kociemba_str[53], kociemba_str[42]),  # DBL
+            (kociemba_str[29], kociemba_str[53], kociemba_str[17])   # DBR
+        ]
+        
+        opposite_faces = {
+            'U': 'D', 'D': 'U',
+            'F': 'B', 'B': 'F',
+            'L': 'R', 'R': 'L'
+        }
+        
+        for corner in corner_triplets:
+            # Check for duplicate colors in corner
+            if len(set(corner)) < 3:
+                return "Found a corner with duplicate colors - this isn't possible on a real cube"
             
-            # Check if already solved
-            if kociemba_str == "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB":
-                return "Already solved"
-                
-            # Validate corners
-            corner_triplets = [
-                (kociemba_str[2], kociemba_str[9], kociemba_str[18]),    # UFR
-                (kociemba_str[0], kociemba_str[18], kociemba_str[36]),   # UFL
-                (kociemba_str[0], kociemba_str[45], kociemba_str[36]),   # UBL
-                (kociemba_str[2], kociemba_str[47], kociemba_str[9]),    # UBR
-                (kociemba_str[29], kociemba_str[24], kociemba_str[17]),  # DFR
-                (kociemba_str[27], kociemba_str[24], kociemba_str[44]),  # DFL
-                (kociemba_str[27], kociemba_str[53], kociemba_str[42]),  # DBL
-                (kociemba_str[29], kociemba_str[53], kociemba_str[17])   # DBR
-            ]
-            
-            opposite_faces = {
-                'U': 'D', 'D': 'U',
-                'F': 'B', 'B': 'F',
-                'L': 'R', 'R': 'L'
-            }
-            
-            for corner in corner_triplets:
-                # Check for duplicate colors in corner
-                if len(set(corner)) < 3:
-                    return f"Invalid corners: same color appears multiple times on a corner"
-                
-                # Check for opposite colors in corner
-                for i in range(3):
-                    for j in range(i + 1, 3):
-                        if corner[i] == opposite_faces[corner[j]]:
-                            return f"Invalid corners: opposite colors on same corner"
-            
-            return f"{color_status} - Valid corners (this should have a solution)"
-            
-        return color_status
+            # Check for opposite colors in corner
+            for i in range(3):
+                for j in range(i + 1, 3):
+                    if corner[i] == opposite_faces[corner[j]]:
+                        return "Found a corner with opposite colors - this isn't possible on a real cube"
+        
+        return "All colors are correct and corners are valid - this cube should have a solution"
         
     except Exception as e:
         print(traceback.format_exc())
         return f"Error analyzing cube: {str(e)}"
-

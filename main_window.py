@@ -358,7 +358,7 @@ class RubiksWindow(QMainWindow):
                 self.gl_widget.cube.start_solution_animation()
                 self.next_step_btn.setEnabled(True)
                 self.prev_step_btn.setEnabled(True)
-                self.solution_status.setText("Solution available")
+                self.solution_status.setText("Solution available; use arrow keys to navigate the solution")
                 self.solution_status.setStyleSheet("color: green;")
             else:
                 self.next_step_btn.setEnabled(False)
