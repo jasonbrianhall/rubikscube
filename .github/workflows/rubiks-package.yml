@@ -84,7 +84,9 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v1
         with:
-          files: RubiksCubeSolver.msi
+          files: 
+            - RubiksCubeSolver.msi
+            - RubikSolver.exe
           tag_name: v${{ github.run_number }}
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }}
