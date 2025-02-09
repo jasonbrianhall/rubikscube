@@ -363,7 +363,11 @@ class RubiksWindow(QMainWindow):
             else:
                 self.next_step_btn.setEnabled(False)
                 self.prev_step_btn.setEnabled(False)
-                self.solution_status.setText("No solution available")
+                kociemba_str=rubiksolver.convert_to_kociemba(cube_dict)
+                data="No solution available; "
+                data+=rubiksolver.troubleshoot_cube_string(kociemba_str)
+
+                self.solution_status.setText(data)
                 self.solution_status.setStyleSheet("color: red;")
         except Exception:
             self.next_step_btn.setEnabled(False)
