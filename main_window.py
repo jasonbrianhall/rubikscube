@@ -458,10 +458,10 @@ Reset button clears the cube
     def show_about(self):
         """Show the About dialog"""
         about_text = """
-Rubik's Cube Simulator
+Rubik's Cube Solver
 Version 1.0
 
-A Python-based interactive Rubik's Cube simulator 
+A Python-based interactive Rubik's Cube solver
 built with PyQt5 and OpenGL.
 
 Features:

@@ -1,6 +1,6 @@
 # Interactive Rubik's Cube Simulator
 
-A Python-based interactive Rubik's Cube simulator built with PyQt5 and OpenGL. This application provides a 3D visualization of a Rubik's cube that users can manipulate, color, and solve.
+A Python-based interactive Rubik's Cube simulator and solver built with PyQt5 and OpenGL. This application provides a 3D visualization of a Rubik's cube that users can manipulate, color, and solve.
 
 ![Rubik's Cube Simulator Screenshot](docs/images/screenshot.png)
 
