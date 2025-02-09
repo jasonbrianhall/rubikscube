@@ -122,126 +122,86 @@ def solve_cube(cube_state):
         print("No solution found")
     return solution
 
-def troubleshoot_cube_string(kociemba_str):
+def troubleshoot_cube_string(cube_str):
     """
-    Analyzes a Kociemba string to check if it's solved, count colors, and validate corners.
+    Analyzes a cube's state, counting colors and validating structure.
+    First counts all colors, then validates corners if counts are correct.
     
     Args:
-        kociemba_str (str): The Kociemba string to analyze
+        cube_str (dict): The cube state dictionary
         
     Returns:
-        str: "Already solved" if solved, otherwise counts and corner validation
+        str: Color counts and validation results
     """
-    print(kociemba_str)
-
-    # Check if already solved
-    # In a solved cube, each face should be 9 of the same letter
-    face_size = 9
-    faces = [
-        kociemba_str[0:9],          # U face
-        kociemba_str[9:18],         # R face
-        kociemba_str[18:27],        # F face
-        kociemba_str[27:36],        # D face
-        kociemba_str[36:45],        # L face
-        kociemba_str[45:54]         # B face
-    ]
-    
-    if kociemba_str=="UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB":
-        return "Already solved"
-    
-    # Count occurrences
-    counts = {
-        'U': 0,  # White
-        'R': 0,  # Red
-        'F': 0,  # Green
-        'D': 0,  # Yellow
-        'L': 0,  # Orange
-        'B': 0   # Blue
-    }
-    
-    for char in kociemba_str.upper():
-        if char in counts:
-            counts[char] += 1
-    
-    # First check if we have exactly 9 of each color
-    if not all(count == 9 for count in counts.values()):
-        return f"U (White): {counts['U']}, R (Red): {counts['R']}, F (Green): {counts['F']}, D (Yellow): {counts['D']}, L (Orange): {counts['L']}, B (Blue): {counts['B']}"
-    
-    # If we have 9 of each, validate corners
-    corner_triplets = []
-    
-    # UFR
-    corner_triplets.append((
-        kociemba_str[2],                    # U face
-        kociemba_str[9],                    # R face
-        kociemba_str[18]                    # F face
-    ))
-    
-    # UFL
-    corner_triplets.append((
-        kociemba_str[0],                    # U face
-        kociemba_str[18],                   # F face
-        kociemba_str[36]                    # L face
-    ))
-    
-    # UBL
-    corner_triplets.append((
-        kociemba_str[0],                    # U face
-        kociemba_str[45],                   # B face
-        kociemba_str[36]                    # L face
-    ))
-    
-    # UBR
-    corner_triplets.append((
-        kociemba_str[2],                    # U face
-        kociemba_str[47],                   # B face
-        kociemba_str[9]                     # R face
-    ))
-    
-    # DFR
-    corner_triplets.append((
-        kociemba_str[29],                   # D face
-        kociemba_str[24],                   # F face
-        kociemba_str[17]                    # R face
-    ))
-    
-    # DFL
-    corner_triplets.append((
-        kociemba_str[27],                   # D face
-        kociemba_str[24],                   # F face
-        kociemba_str[44]                    # L face
-    ))
-    
-    # DBL
-    corner_triplets.append((
-        kociemba_str[27],                   # D face
-        kociemba_str[53],                   # B face
-        kociemba_str[42]                    # L face
-    ))
-    
-    # DBR
-    corner_triplets.append((
-        kociemba_str[29],                   # D face
-        kociemba_str[53],                   # B face
-        kociemba_str[17]                    # R face
-    ))
-    
-    # Check for invalid corner combinations
-    opposite_faces = {
-        'U': 'D', 'D': 'U',
-        'F': 'B', 'B': 'F',
-        'L': 'R', 'R': 'L'
-    }
-    
-    for corner in corner_triplets:
-        # Check if any corner has same color twice
-        if len(set(corner)) < 3:
-            return f"U (White): {counts['U']}, R (Red): {counts['R']}, F (Green): {counts['F']}, D (Yellow): {counts['D']}, L (Orange): {counts['L']}, B (Blue): {counts['B']} - Invalid corners: same color appears multiple times on a corner"
+    try:
+        # Initialize color counts
+        color_counts = {}
         
-        # Check if corner has opposite faces
-        for i in range(3):
-            for j in range(i + 1, 3):
-                if corner[i] == opposite_faces[corner[j]]:
-                    return f"U (White): {counts['U']}, R (Red): {counts['R']}, F (Green): {counts['F']}, D (Yellow): {counts['D']}, L (Orange): {counts['L']}, B (Blue): {counts['B']} - Invalid corners: opposite colors on same corner"
-    
-    return f"U (White): {counts['U']}, R (Red): {counts['R']}, F (Green): {counts['F']}, D (Yellow): {counts['D']}, L (Orange): {counts['L']}, B (Blue): {counts['B']} - Valid corners"
+        # First pass - collect all unique colors and initialize counts
+        for face in cube_str.values():
+            for color in face.values():
+                if color not in color_counts:
+                    color_counts[color] = 0
+                    
+        # Second pass - count occurrences
+        for face in cube_str.values():
+            for color in face.values():
+                color_counts[color] += 1
+        
+        # Build result string
+        result_parts = []
+        for color, count in sorted(color_counts.items()):
+            result_parts.append(f"{color.capitalize()}: {count}")
+        
+        color_status = " ".join(result_parts)
+        
+        # Check if we have exactly 9 of each main color and 0 unassigned
+        expected_colors = {'WHITE', 'RED', 'GREEN', 'YELLOW', 'ORANGE', 'BLUE'}
+        if ('UNASSIGNED' not in color_counts and 
+            all(color in color_counts for color in expected_colors) and
+            all(color_counts[color] == 9 for color in expected_colors)):
+            
+            # If counts are good, convert to Kociemba and check corners
+            kociemba_str = convert_to_kociemba(cube_str)
+            
+            # Check if already solved
+            if kociemba_str == "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB":
+                return "Already solved"
+                
+            # Validate corners
+            corner_triplets = [
+                (kociemba_str[2], kociemba_str[9], kociemba_str[18]),    # UFR
+                (kociemba_str[0], kociemba_str[18], kociemba_str[36]),   # UFL
+                (kociemba_str[0], kociemba_str[45], kociemba_str[36]),   # UBL
+                (kociemba_str[2], kociemba_str[47], kociemba_str[9]),    # UBR
+                (kociemba_str[29], kociemba_str[24], kociemba_str[17]),  # DFR
+                (kociemba_str[27], kociemba_str[24], kociemba_str[44]),  # DFL
+                (kociemba_str[27], kociemba_str[53], kociemba_str[42]),  # DBL
+                (kociemba_str[29], kociemba_str[53], kociemba_str[17])   # DBR
+            ]
+            
+            opposite_faces = {
+                'U': 'D', 'D': 'U',
+                'F': 'B', 'B': 'F',
+                'L': 'R', 'R': 'L'
+            }
+            
+            for corner in corner_triplets:
+                # Check for duplicate colors in corner
+                if len(set(corner)) < 3:
+                    return f"Invalid corners: same color appears multiple times on a corner"
+                
+                # Check for opposite colors in corner
+                for i in range(3):
+                    for j in range(i + 1, 3):
+                        if corner[i] == opposite_faces[corner[j]]:
+                            return f"Invalid corners: opposite colors on same corner"
+            
+            return f"{color_status} - Valid corners (this should have a solution)"
+            
+        return color_status
+        
+    except Exception as e:
+        print(traceback.format_exc())
+        return f"Error analyzing cube: {str(e)}"
+
