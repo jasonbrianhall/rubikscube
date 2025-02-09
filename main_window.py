@@ -13,6 +13,8 @@ from PyQt5.QtGui import QIcon, QPixmap
 import base64
 from app_icon import ICON_DATA
 from pathlib import Path
+from PyQt5.QtWidgets import QMessageBox
+
 
 def get_tables_path():
     """Get the path to the tables.json file in the user's home directory"""
@@ -39,7 +41,15 @@ class RubiksWindow(QMainWindow):
         # Create menu bar
         menubar = self.menuBar()
         file_menu = menubar.addMenu('File')
-        #view_menu = menubar.addMenu('View')  # Add new View menu
+        help_menu = menubar.addMenu('Help') 
+
+        howto_action = QAction('How To', self)
+        howto_action.triggered.connect(self.show_howto)
+        help_menu.addAction(howto_action)
+
+        about_action = QAction('About', self)
+        about_action.triggered.connect(self.show_about)
+        help_menu.addAction(about_action)
         
         solve_action = QAction('Solve', self)
         solve_action.setShortcut('Ctrl+R')
@@ -403,5 +413,72 @@ class RubiksWindow(QMainWindow):
         if self.gl_widget.cube.next_solution_step():
             print("Window: Starting animation timer")
             self.gl_widget.animation_timer.start()
-            self.gl_widget.update()        
+            self.gl_widget.update()  
+            
+    def show_howto(self):
+        """Show the How To dialog"""
+        howto_text = """
+Keyboard Controls:
+-----------------
+Arrow Keys: Rotate entire cube view
+A/D: Rotate top row counter-clockwise/clockwise
+H/F: Rotate bottom row counter-clockwise/clockwise
+W/S: Rotate front column up/down
+T/G: Rotate back column up/down
+I/K: Rotate back face clockwise/counter-clockwise
+J/L: Rotate front face clockwise/counter-clockwise
+
+Mouse Controls:
+--------------
+Left Click: Apply selected color
+Right Click: Reset to unassigned
+Click + Drag: Rotate cube
+Mouse Wheel: Zoom in/out
+
+Colors:
+-------
+Select colors from the top toolbar
+Each color must appear exactly 9 times
+Each cube must have six unique corners and be a valid rubik's cube
+Right-click to remove colors
+
+Solution:
+--------
+Use Solve button to find solution (errors will appear if not valid)
+Navigate solution with arrow buttons (if the solution is valid)
+Save/Load states from File menu
+Reset button clears the cube
+"""
+        msg = QMessageBox()
+        msg.setWindowTitle("How To Use")
+        msg.setText(howto_text)
+        msg.setStyleSheet("QLabel{min-width: 500px;}")
+        msg.exec_()
+
+    def show_about(self):
+        """Show the About dialog"""
+        about_text = """
+Rubik's Cube Simulator
+Version 1.0
+
+A Python-based interactive Rubik's Cube simulator 
+built with PyQt5 and OpenGL.
+
+Features:
+- 3D visualization
+- Interactive controls
+- Cube solver
+- Save/Load functionality
+
+Created by Jason Hall
+Copyright © 2025
+License: MIT
+
+For more information, visit:
+https://github.com/jasonbrianhall/rubikscube
+"""
+        msg = QMessageBox()
+        msg.setWindowTitle("About")
+        msg.setText(about_text)
+        msg.exec_()      
 
