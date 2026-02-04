@@ -14,11 +14,11 @@ COLOR_MAP = {
 }
 
 MOVES = {
-    "U":  [(0,6,8,2), (1,3,7,5), (9,18,36,27), (10,19,37,28), (11,20,38,29)],
-    "U'": [(0,2,8,6), (1,5,7,3), (9,27,36,18), (10,28,37,19), (11,29,38,20)],
+    "U":  [(0,6,8,2), (1,3,7,5), (18,36,45,9), (19,37,46,10), (20,38,47,11)],
+    "U'": [(0,2,8,6), (1,5,7,3), (18,9,45,36), (19,10,46,37), (20,11,47,38)],
     "U2": [(0,8), (2,6), (1,7), (3,5),
-           (9,36), (10,37), (11,38),
-           (18,27), (19,28), (20,29)],
+           (18,45), (19,46), (20,47),
+           (9,36), (10,37), (11,38)],
     "D":  [(45,47,53,51), (46,48,52,50),
            (15,33,42,24), (16,34,43,25), (17,35,44,26)],
     "D'": [(45,51,53,47), (46,50,52,48),
@@ -93,22 +93,15 @@ def cube_to_json(cube):
     
     return faces
 
-def random_twisted_cube(n=25):
-    cube = SOLVED[:]
-    scramble = []
-    last_face = None
-
-    for _ in range(n):
-        while True:
-            move = random.choice(ALL_MOVES)
-            face = move[0]
-            if face != last_face:
-                scramble.append(move)
-                last_face = face
-                break
+def apply_scramble(cube, scramble_str):
+    """Apply a scramble string like 'U R F D' to the cube"""
+    moves = scramble_str.split()
+    for move in moves:
+        if move not in MOVES:
+            print(f"Warning: Unknown move '{move}'")
+            continue
         cube = apply_move(cube, move)
-
-    return cube, " ".join(scramble)
+    return cube
 
 def save_cube(cube, scramble, filename_base="cube"):
     flat_file = f"{filename_base}.txt"
@@ -123,17 +116,54 @@ def save_cube(cube, scramble, filename_base="cube"):
     print(f"Saved JSON format to {json_file}")
 
 if len(sys.argv) > 1:
-    try:
-        num_moves = int(sys.argv[1])
-    except ValueError:
-        print(f"Error: '{sys.argv[1]}' is not a valid integer")
-        sys.exit(1)
+    arg = sys.argv[1]
+    
+    # Check if it's a number (random moves) or a scramble string
+    if arg.isdigit():
+        num_moves = int(arg)
+        cube = SOLVED[:]
+        scramble = []
+        last_face = None
+        
+        for _ in range(num_moves):
+            while True:
+                move = random.choice(ALL_MOVES)
+                face = move[0]
+                if face != last_face:
+                    scramble.append(move)
+                    last_face = face
+                    break
+            cube = apply_move(cube, move)
+        
+        scramble_str = " ".join(scramble)
+        print(f"Generated cube with {num_moves} random moves")
+    else:
+        # Treat as scramble string
+        scramble_str = arg
+        cube = SOLVED[:]
+        cube = apply_scramble(cube, scramble_str)
+        print(f"Applied scramble: {scramble_str}")
 else:
+    # Default: 25 random moves
     num_moves = 25
+    cube = SOLVED[:]
+    scramble = []
+    last_face = None
+    
+    for _ in range(num_moves):
+        while True:
+            move = random.choice(ALL_MOVES)
+            face = move[0]
+            if face != last_face:
+                scramble.append(move)
+                last_face = face
+                break
+        cube = apply_move(cube, move)
+    
+    scramble_str = " ".join(scramble)
+    print(f"Generated cube with {num_moves} random moves")
 
-cube, scramble = random_twisted_cube(n=num_moves)
-print(f"Generated cube with {num_moves} random moves")
-print("Scramble:", scramble)
+print("Scramble:", scramble_str)
 print("Cube state (flat):", "".join(cube))
 print()
-save_cube(cube, scramble)
+save_cube(cube, scramble_str)
